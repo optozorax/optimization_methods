@@ -1,7 +1,7 @@
-#include "pch.h"
 #include <functional>
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 #include <cmath>
 
 struct MethodResult {
@@ -10,13 +10,23 @@ struct MethodResult {
 	int fCount;
 };
 
+//-----------------------------------------------------------------------------
 MethodResult calcDichotomy(const std::function<double(double)>& f, double a, double b, double eps) {
+	std::ofstream fout("dichotomy_file.txt");
+	fout << "i\ta_i\tb_i\tb_i-a_i\t(b_(i-1)-a_(i-1))/(b_i-a_i)\tx_1\tx_2\tf(x_1)\tf(x_2)" << std::endl;
+	fout << std::setprecision(9);
+
 	int i = 0;
 	int fCount = 0;
 	double beta = eps*0.9;
-	while (fabs(a-b) > eps) {
+	double lastA = a, lastB = b;
+	while (std::fabs(a-b) > eps) {
 		double x1 = (a + b - beta) / 2.0;
 		double x2 = (a + b + beta) / 2.0;
+
+		fout << i << "\t" << a << "\t" << b << "\t" << b-a << "\t" << (lastB-lastA)/(b-a) << "\t" << x1 << "\t" << x2 << "\t" << f(x1) << "\t" << f(x2) << std::endl;
+		lastA = a; lastB = b;
+
 		if (f(x1) > f(x2)) {
 			a = x1;
 		} else {
@@ -25,11 +35,17 @@ MethodResult calcDichotomy(const std::function<double(double)>& f, double a, dou
 		i++;
 		fCount += 2;
 	}
+
+	fout.close();
 	return { i, (a + b) / 2.0, fCount };
 }
 
-
+//-----------------------------------------------------------------------------
 MethodResult calcGoldenRatio(const std::function<double(double)>& f, double a, double b, double eps) {
+	std::ofstream fout("golden_ratio_file.txt");
+	fout << "i\ta_i\tb_i\tb_i-a_i\t(b_(i-1)-a_(i-1))/(b_i-a_i)\tx_1\tx_2\tf(x_1)\tf(x_2)" << std::endl;
+	fout << std::setprecision(9);
+
 	int i = 0;
 	int fCount = 0;
 	double beta = eps * 0.9;
@@ -44,7 +60,11 @@ MethodResult calcGoldenRatio(const std::function<double(double)>& f, double a, d
 	double f2 = f(x2);
 	fCount += 2;
 
-	while (fabs(a - b) > eps) {
+	double lastA = a, lastB = b;
+	while (std::fabs(a - b) > eps) {
+		fout << i << "\t" << a << "\t" << b << "\t" << b-a << "\t" << (lastB-lastA)/(b-a) << "\t" << x1 << "\t" << x2 << "\t" << f1 << "\t" << f2 << std::endl;
+		lastA = a; lastB = b;
+
 		if (f1 > f2) {
 			a = x1;
 			x1 = x2;
@@ -62,14 +82,20 @@ MethodResult calcGoldenRatio(const std::function<double(double)>& f, double a, d
 		fCount++;
 		i++;
 	}
+
+	fout.close();
 	return { i, (a + b) / 2.0, fCount };
 }
 
 
-
+//-----------------------------------------------------------------------------
 MethodResult calcFibonacci(const std::function<double(double)>& f, double a, double b, double eps) {
 	//auto fibonacciN = [](const int n) {return (pow(1.61803398874989, n) + pow(-0.6180339887498948, n)) / 2.23606797749978; };
 	auto fibonacciN = [](const int n) {return (pow((1 + sqrt(5))/2.0, n) + pow((1 - sqrt(5)) / 2.0, n)) / sqrt(5); };
+
+	std::ofstream fout("fibonacci_file.txt");
+	fout << "i\ta_i\tb_i\tb_i-a_i\t(b_(i-1)-a_(i-1))/(b_i-a_i)\tx_1\tx_2\tf(x_1)\tf(x_2)" << std::endl;
+	fout << std::setprecision(9);
 
 
 	int i = 0;
@@ -99,15 +125,12 @@ MethodResult calcFibonacci(const std::function<double(double)>& f, double a, dou
 
 			x2 = temp + (fibonacciN(n - i + 2) / fibN2) * length; 
 			f2 = f(x2);
-
-		}
-		else {
+		} else {
 			b = x2;
 			x2 = x1;
 			f2 = f1;
-
 		
-			x1 = temp + (fibonacciN(n - i + 1) / fibN2) * length; //
+			x1 = temp + (fibonacciN(n - i + 1) / fibN2) * length;
 			f1 = f(x1);
 		}
 
@@ -117,6 +140,7 @@ MethodResult calcFibonacci(const std::function<double(double)>& f, double a, dou
 	return { i, (a + b) / 2.0, fCount };
 }
 
+//-----------------------------------------------------------------------------
 void findSegment(const std::function<double(double)>& f, double x0, double& a, double& b) {
 	std::ofstream fout("find_segment.txt");
 
@@ -163,7 +187,7 @@ void findSegment(const std::function<double(double)>& f, double x0, double& a, d
 
 int main() {
 	using namespace std;
-	double a = 2, b = 200, eps = 0.0001;
+	double a = 2, b = 200, eps = 1e-7;
 	auto f = [](double x) -> double { return pow(x - 15, 2.0) + 5; };
 	auto min1 = calcDichotomy(f, a, b, eps);
 	auto min2 = calcGoldenRatio(f, a, b, eps);
@@ -176,5 +200,5 @@ int main() {
 	findSegment(f, 15.000001, a, b);
 	cout << a << " " << b;
 
-	system("pause");
+	std::system("pause");
 }
