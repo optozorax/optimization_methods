@@ -16,7 +16,7 @@ typedef std::function<double(double)> Function;
 typedef std::function<MethodResult(const Function&, double, double, double)> Method;
 
 //-----------------------------------------------------------------------------
-/** Метод дихотомии для поиска минимума. */
+/** РњРµС‚РѕРґ РґРёС…РѕС‚РѕРјРёРё РґР»СЏ РїРѕРёСЃРєР° РјРёРЅРёРјСѓРјР°. */
 MethodResult calcDichotomy(const Function& f, double a, double b, double eps) {
 	std::ofstream fout("dichotomy_file.txt");
 	fout << "i\ta_i\tb_i\tb_i-a_i\t(b_(i-1)-a_(i-1))/(b_i-a_i)\tx_1\tx_2\tf(x_1)\tf(x_2)" << std::endl;
@@ -47,7 +47,7 @@ MethodResult calcDichotomy(const Function& f, double a, double b, double eps) {
 }
 
 //-----------------------------------------------------------------------------
-/** Метод золотого сечения для поиска минимума. */
+/** РњРµС‚РѕРґ Р·РѕР»РѕС‚РѕРіРѕ СЃРµС‡РµРЅРёСЏ РґР»СЏ РїРѕРёСЃРєР° РјРёРЅРёРјСѓРјР°. */
 MethodResult calcGoldenRatio(const Function& f, double a, double b, double eps) {
 	std::ofstream fout("golden_ratio_file.txt");
 	fout << "i\ta_i\tb_i\tb_i-a_i\t(b_(i-1)-a_(i-1))/(b_i-a_i)\tx_1\tx_2\tf(x_1)\tf(x_2)" << std::endl;
@@ -97,12 +97,12 @@ MethodResult calcGoldenRatio(const Function& f, double a, double b, double eps) 
 }
 
 //-----------------------------------------------------------------------------
-/** Метод Фибоначчи для поиска минимума. */
+/** РњРµС‚РѕРґ Р¤РёР±РѕРЅР°С‡С‡Рё РґР»СЏ РїРѕРёСЃРєР° РјРёРЅРёРјСѓРјР°. */
 MethodResult calcFibonacci(const Function& f, double a, double b, double eps) {
-	// Вычисление через формулу со степенями
+	// Р’С‹С‡РёСЃР»РµРЅРёРµ С‡РµСЂРµР· С„РѕСЂРјСѓР»Сѓ СЃРѕ СЃС‚РµРїРµРЅСЏРјРё
 	auto fibonacciN = [](const int n) {return (pow((1 + sqrt(5))/2.0, n) + pow((1 - sqrt(5)) / 2.0, n)) / sqrt(5); };
 
-	// Вычисление через сумму целых чисел
+	// Р’С‹С‡РёСЃР»РµРЅРёРµ С‡РµСЂРµР· СЃСѓРјРјСѓ С†РµР»С‹С… С‡РёСЃРµР»
 	/*auto fibonacciN = [](const int n) -> double {
 		double f0 = 1;
 		double f1 = 1;
@@ -121,7 +121,7 @@ MethodResult calcFibonacci(const Function& f, double a, double b, double eps) {
 	int i = 0;
 	int fCount = 0;
 
-	// Ищем количество итераций
+	// РС‰РµРј РєРѕР»РёС‡РµСЃС‚РІРѕ РёС‚РµСЂР°С†РёР№
 	int n = 0;
 	for (; fibonacciN(n + 2) < (b - a) / eps; n++);
 
@@ -167,7 +167,7 @@ MethodResult calcFibonacci(const Function& f, double a, double b, double eps) {
 }
 
 //-----------------------------------------------------------------------------
-/** Функция для нахождения интервала, содержащего минимум для унимодальной функции. */
+/** Р¤СѓРЅРєС†РёСЏ РґР»СЏ РЅР°С…РѕР¶РґРµРЅРёСЏ РёРЅС‚РµСЂРІР°Р»Р°, СЃРѕРґРµСЂР¶Р°С‰РµРіРѕ РјРёРЅРёРјСѓРј РґР»СЏ СѓРЅРёРјРѕРґР°Р»СЊРЅРѕР№ С„СѓРЅРєС†РёРё. */
 void findSegment(const Function& f, double x0, double& a, double& b, double eps = 1) {
 	std::ofstream fout("find_segment.txt");
 	fout << "i\tx_i\tf(x_i)\tinterval" << std::endl;
@@ -205,7 +205,7 @@ void findSegment(const Function& f, double x0, double& a, double& b, double eps 
 }
 
 //-----------------------------------------------------------------------------
-/** Функция для проверки правильности работы функции findSegment. */
+/** Р¤СѓРЅРєС†РёСЏ РґР»СЏ РїСЂРѕРІРµСЂРєРё РїСЂР°РІРёР»СЊРЅРѕСЃС‚Рё СЂР°Р±РѕС‚С‹ С„СѓРЅРєС†РёРё findSegment. */
 void checkSegment(const Function& f, double x0, double eps) {
 	double a = 0, b = 0;
 	findSegment(f, x0, a, b, eps);
@@ -215,7 +215,7 @@ void checkSegment(const Function& f, double x0, double eps) {
 }
 
 //-----------------------------------------------------------------------------
-/** Построение таблиц зависимости числа вычислений функций от степени для заданного метода. */
+/** РџРѕСЃС‚СЂРѕРµРЅРёРµ С‚Р°Р±Р»РёС† Р·Р°РІРёСЃРёРјРѕСЃС‚Рё С‡РёСЃР»Р° РІС‹С‡РёСЃР»РµРЅРёР№ С„СѓРЅРєС†РёР№ РѕС‚ СЃС‚РµРїРµРЅРё РґР»СЏ Р·Р°РґР°РЅРЅРѕРіРѕ РјРµС‚РѕРґР°. */
 void calcFunctionCount(const Method& m, const Function& f, double a, double b, std::string filename) {
 	std::ofstream fout(filename);
 
@@ -241,21 +241,21 @@ std::ostream& operator<<(std::ostream& out, const MethodResult& m) {
 //-----------------------------------------------------------------------------
 
 int main() {
-	// Начальные присвоения
+	// РќР°С‡Р°Р»СЊРЅС‹Рµ РїСЂРёСЃРІРѕРµРЅРёСЏ
 	double a = 2, b = 200, eps = 1e-7;
 	auto f = [](double x) -> double { return pow(x - 15, 2.0) + 5; };
 
-	// Выводим на экран результат работы методов, а так же в файл сгенерированные таблицы
+	// Р’С‹РІРѕРґРёРј РЅР° СЌРєСЂР°РЅ СЂРµР·СѓР»СЊС‚Р°С‚ СЂР°Р±РѕС‚С‹ РјРµС‚РѕРґРѕРІ, Р° С‚Р°Рє Р¶Рµ РІ С„Р°Р№Р» СЃРіРµРЅРµСЂРёСЂРѕРІР°РЅРЅС‹Рµ С‚Р°Р±Р»РёС†С‹
 	std::cout << "Dichotomy method. " << calcDichotomy(f, a, b, eps) << std::endl;
 	std::cout << "Golden ratio method. " << calcGoldenRatio(f, a, b, eps) << std::endl;
 	std::cout << "Fibonacci method. " << calcFibonacci(f, a, b, eps) << std::endl;
 
-	// Создаем файлы, где в зависимости от логарифма eps записывается число вычислений функции
+	// РЎРѕР·РґР°РµРј С„Р°Р№Р»С‹, РіРґРµ РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ Р»РѕРіР°СЂРёС„РјР° eps Р·Р°РїРёСЃС‹РІР°РµС‚СЃСЏ С‡РёСЃР»Рѕ РІС‹С‡РёСЃР»РµРЅРёР№ С„СѓРЅРєС†РёРё
 	calcFunctionCount(calcDichotomy, f, a, b, "dichotomy_count.txt");
 	calcFunctionCount(calcGoldenRatio, f, a, b, "golden_ratio_count.txt");
 	calcFunctionCount(calcFibonacci, f, a, b, "fibonacci_count.txt");
 
-	// Проверяем функцию findSegment на правильную работоспособность в различных точках и с различных eps
+	// РџСЂРѕРІРµСЂСЏРµРј С„СѓРЅРєС†РёСЋ findSegment РЅР° РїСЂР°РІРёР»СЊРЅСѓСЋ СЂР°Р±РѕС‚РѕСЃРїРѕСЃРѕР±РЅРѕСЃС‚СЊ РІ СЂР°Р·Р»РёС‡РЅС‹С… С‚РѕС‡РєР°С… Рё СЃ СЂР°Р·Р»РёС‡РЅС‹С… eps
 	std::vector<double> epss = {10, 1, 0.1, 0.01, 0.00001};
 	for (auto& i : epss) {
 		checkSegment(f, 0, i);
@@ -273,7 +273,7 @@ int main() {
 		checkSegment(f, 15.0001, i);
 	}
 
-	// Записываем в файл таблицу поиска интервала из точки 0 с eps = 1
+	// Р—Р°РїРёСЃС‹РІР°РµРј РІ С„Р°Р№Р» С‚Р°Р±Р»РёС†Сѓ РїРѕРёСЃРєР° РёРЅС‚РµСЂРІР°Р»Р° РёР· С‚РѕС‡РєРё 0 СЃ eps = 1
 	findSegment(f, 0, a, b);
 
 	std::system("pause");
