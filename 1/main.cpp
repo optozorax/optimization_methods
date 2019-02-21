@@ -20,15 +20,16 @@ typedef std::function<MethodResult(const Function&, double, double, double)> Met
 MethodResult calcDichotomy(const Function& f, double a, double b, double eps) {
 	std::ofstream fout("dichotomy_file.txt");
 	fout << "i\ta_i\tb_i\tb_i-a_i\t(b_(i-1)-a_(i-1))/(b_i-a_i)\tx_1\tx_2\tf(x_1)\tf(x_2)" << std::endl;
-	fout << std::setprecision(9);
+	fout << std::setprecision(11);
 
 	int i = 0;
 	int fCount = 0;
 	double beta = eps*0.9;
 	double lastA = a, lastB = b;
+	double x1, x2;
 	while (std::fabs(a-b) > eps) {
-		double x1 = (a + b - beta) / 2.0;
-		double x2 = (a + b + beta) / 2.0;
+		x1 = (a + b - beta) / 2.0;
+		x2 = (a + b + beta) / 2.0;
 
 		fout << i << "\t" << a << "\t" << b << "\t" << b-a << "\t" << (lastB-lastA)/(b-a) << "\t" << x1 << "\t" << x2 << "\t" << f(x1) << "\t" << f(x2) << std::endl;
 		lastA = a; lastB = b;
@@ -42,6 +43,8 @@ MethodResult calcDichotomy(const Function& f, double a, double b, double eps) {
 		fCount += 2;
 	}
 
+	fout << i << "\t" << a << "\t" << b << "\t" << b - a << "\t" << (lastB - lastA) / (b - a) << "\t" << x1 << "\t" << x2 << "\t" << f(x1) << "\t" << f(x2) << std::endl;
+
 	fout.close();
 	return { i, (a + b) / 2.0, fCount };
 }
@@ -51,7 +54,7 @@ MethodResult calcDichotomy(const Function& f, double a, double b, double eps) {
 MethodResult calcGoldenRatio(const Function& f, double a, double b, double eps) {
 	std::ofstream fout("golden_ratio_file.txt");
 	fout << "i\ta_i\tb_i\tb_i-a_i\t(b_(i-1)-a_(i-1))/(b_i-a_i)\tx_1\tx_2\tf(x_1)\tf(x_2)" << std::endl;
-	fout << std::setprecision(9);
+	fout << std::setprecision(11);
 
 	int i = 0;
 	int fCount = 0;
@@ -90,6 +93,8 @@ MethodResult calcGoldenRatio(const Function& f, double a, double b, double eps) 
 		i++;
 	}
 
+	fout << i << "\t" << a << "\t" << b << "\t" << b - a << "\t" << (lastB - lastA) / (b - a) << "\t" << x1 << "\t" << x2 << "\t" << f1 << "\t" << f2 << std::endl;
+
 	fCount--;
 
 	fout.close();
@@ -100,10 +105,10 @@ MethodResult calcGoldenRatio(const Function& f, double a, double b, double eps) 
 /** Метод Фибоначчи для поиска минимума. */
 MethodResult calcFibonacci(const Function& f, double a, double b, double eps) {
 	// Вычисление через формулу со степенями
-	auto fibonacciN = [](const int n) {return (pow((1 + sqrt(5))/2.0, n) + pow((1 - sqrt(5)) / 2.0, n)) / sqrt(5); };
+	//auto fibonacciN = [](const int n) {return (pow((1 + sqrt(5))/2.0, n) + pow((1 - sqrt(5)) / 2.0, n)) / sqrt(5); };
 
 	// Вычисление через сумму целых чисел
-	/*auto fibonacciN = [](const int n) -> double {
+	auto fibonacciN = [](const int n) -> double {
 		double f0 = 1;
 		double f1 = 1;
 		for (int i = 2; i <= n; i++) {
@@ -112,13 +117,14 @@ MethodResult calcFibonacci(const Function& f, double a, double b, double eps) {
 			f0 = temp;
 		}
 		return f1;
-	};*/
+	};
 
 	std::ofstream fout("fibonacci_file.txt");
 	fout << "i\ta_i\tb_i\tb_i-a_i\t(b_(i-1)-a_(i-1))/(b_i-a_i)\tx_1\tx_2\tf(x_1)\tf(x_2)" << std::endl;
-	fout << std::setprecision(9);
+	fout << std::setprecision(11);
 
 	int i = 0;
+	int iter = 0;
 	int fCount = 0;
 
 	// Ищем количество итераций
@@ -135,11 +141,10 @@ MethodResult calcFibonacci(const Function& f, double a, double b, double eps) {
 	double f2 = f(x2);
 	fCount += 2;
 
+	fout << iter + 1 << "\t" << a << "\t" << b << "\t" << b - a << "\t" << 1 << "\t" << x1 << "\t" << x2 << "\t" << f1 << "\t" << f2 << std::endl;
 	double lastA = a, lastB = b;
-	for(i = 2; i < n; i++) {
-		fout << i << "\t" << a << "\t" << b << "\t" << b-a << "\t" << (lastB-lastA)/(b-a) << "\t" << x1 << "\t" << x2 << "\t" << f1 << "\t" << f2 << std::endl;
-		lastA = a; lastB = b;
-
+	iter++;
+	for(i = 2; i < n+2; i++) {
 		if (f1 > f2) {
 			a = x1;
 			x1 = x2;
@@ -156,6 +161,10 @@ MethodResult calcFibonacci(const Function& f, double a, double b, double eps) {
 			f1 = f(x1);
 		}
 
+		fout << iter + 1 << "\t" << a << "\t" << b << "\t" << b - a << "\t" << (lastB - lastA) / (b - a) << "\t" << x1 << "\t" << x2 << "\t" << f1 << "\t" << f2 << std::endl;
+		lastA = a; lastB = b;
+		iter++;
+
 		fCount++;
 	}
 
@@ -163,7 +172,7 @@ MethodResult calcFibonacci(const Function& f, double a, double b, double eps) {
 
 	fout.close();
 
-	return { i, (a + b) / 2.0, fCount };
+	return { iter, (a + b) / 2.0, fCount };
 }
 
 //-----------------------------------------------------------------------------
@@ -274,7 +283,7 @@ int main() {
 	}
 
 	// Записываем в файл таблицу поиска интервала из точки 0 с eps = 1
-	findSegment(f, 0, a, b);
+	findSegment(f, 0, a, b, 1);
 
 	std::system("pause");
 }
