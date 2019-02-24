@@ -1,6 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <fstream>
 #include "methods.h"
 
 //-----------------------------------------------------------------------------
@@ -28,8 +29,18 @@ double f3(const Vector& v) {
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
-void makeSecondTable(const Optimizator& o, const Function& f, const std::string& file) {
+void makeSecondTable(const Optimizator& o, const Function& f, const Vector& x0, const double& eps, const std::string& file) {
+	auto result = o(f, x0, eps);
+	std::fstream fout(file);
+	fout << std::precision(10);
 
+	fout << "x0 = " << x0 << ", eps=" << eps << std::endl;
+
+	for (auto& i : result.steps) {
+		fout << i.point << "\t" << i.value << "\t" << i.dir << "\t" << i.lambda << "\t" << i.grad << "\t" << i.hessian << std::endl;
+	}
+
+	fout.close();
 }
 
 //-----------------------------------------------------------------------------
@@ -65,11 +76,14 @@ int main() {
 				Начальная точка одна
 	*/
 
-	makeSecondTable(optimizeBroyden, f1, "table2_f1_broyden.txt");
-	makeSecondTable(optimizeBroyden, f2, "table2_f2_broyden.txt");
-	makeSecondTable(optimizeBroyden, f3, "table2_f3_broyden.txt");
-	
-	makeSecondTable(optimizeConjugateGradient, f1, "table2_f1_gradient.txt");
-	makeSecondTable(optimizeConjugateGradient, f2, "table2_f2_gradient.txt");
-	makeSecondTable(optimizeConjugateGradient, f3, "table2_f3_gradient.txt");
+	Vector x0 = {0, 0};
+	double eps = 0.001;
+
+	makeSecondTable(optimizeBroyden, f1, x0, eps, "table2_f1_broyden.txt");
+	makeSecondTable(optimizeBroyden, f2, x0, eps, "table2_f2_broyden.txt");
+	makeSecondTable(optimizeBroyden, f3, x0, eps, "table2_f3_broyden.txt");
+
+	makeSecondTable(optimizeConjugateGradient, f1, x0, eps, "table2_f1_gradient.txt");
+	makeSecondTable(optimizeConjugateGradient, f2, x0, eps, "table2_f2_gradient.txt");
+	makeSecondTable(optimizeConjugateGradient, f3, x0, eps, "table2_f3_gradient.txt");
 }

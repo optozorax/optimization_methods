@@ -28,3 +28,25 @@ MethodResult optimizeConjugateGradient(const Function& f, const Vector& x0, doub
 
 	return result;
 }
+
+//-----------------------------------------------------------------------------
+std::ostream& operator<<(std::ostream& out, const Vector& v) {
+	for (int i = 0; i < v.size(); ++i) {
+		out << v(i);
+		if (i != v.size()-1) 
+			out << " ";
+	}
+}
+
+//-----------------------------------------------------------------------------
+std::ostream& operator<<(std::ostream& out, const Matrix& m) {
+	for (int i = 0; i < m.rows(); ++i) {
+		for (int j = 0; j < m.cols(); ++j) {
+			out << m(i);
+			if (j != m.cols()-1) 
+				out << " ";
+		}
+		if (j != m.rows()-1) 
+			out << "; ";
+	}
+}

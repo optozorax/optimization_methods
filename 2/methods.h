@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <vector>
 #include <functional>
 #include <Eigen/Dense>
@@ -51,3 +52,7 @@ MethodResult optimizeBroyden(const Function& f, const Vector& x0, const double& 
 
 /** Оптимизация с помощью метода сопряженных градиентов Флетчера-Ривса. */
 MethodResult optimizeConjugateGradient(const Function& f, const Vector& x0, const double& eps);
+
+// Функции для вывода векторов и матриц.
+std::ostream& operator<<(std::ostream& out, const Vector& v);
+std::ostream& operator<<(std::ostream& out, const Matrix& m);
