@@ -44,8 +44,9 @@ struct StepInformation
 /** Определяет, по какой причине был совершен выход из функции. */
 enum ExitType
 {
-	EXTI_RESIDUAL,
+	EXIT_RESIDUAL,
 	EXIT_STEP,
+	EXIT_ITERATIONS,
 	EXIT_ERROR
 };
 
@@ -77,3 +78,5 @@ MethodResult optimizeConjugateGradient(const Function& f, const Vector& x0, cons
 // Функции для вывода векторов и матриц.
 std::ostream& operator<<(std::ostream& out, const Vector& v);
 std::ostream& operator<<(std::ostream& out, const Matrix& m);
+
+std::ostream& operator<<(std::ostream& out, const ExitType& e);

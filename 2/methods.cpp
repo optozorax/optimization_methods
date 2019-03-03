@@ -117,6 +117,8 @@ void findSegment(const OneDimensionFunction& f, double x0, double& a, double& b,
 		h *= 2;
 		x2 = x1 + h;
 		f2 = f(x2);
+
+		if (h > 512) break; // Костыль, потому что бывают не унимодальные функции
 	} while (f2 < f1);
 
 	if(h > 0) {
@@ -126,6 +128,17 @@ void findSegment(const OneDimensionFunction& f, double x0, double& a, double& b,
 	else {
 		a = x2;
 		b = xPrevious;
+	}
+
+	// Дополнение к костылю
+	if (h > 512) {
+		if (h > 0) {
+			a = x0;
+			b = x2;
+		} else {
+			a = x2;
+			b = x0;
+		}
 	}
 }
 
@@ -175,12 +188,21 @@ MethodResult optimizeBroyden(const Function& f1, const Vector& x0, const double&
 	#endif
 
 	Vector x = x0; debug(x);
+	Vector lastx = x;
 
 	Matrix n;
 	n = Matrix::Identity(x.size(), x.size()); debug(n);
 
+	result.steps.push_back({ x, f1(x), {}, 0, {}, {} });
+
 	Vector gradf = grad(f, x);  debug(gradf);
-	while (gradf.norm() > eps) {
+	while (true) {
+		debug(gradf.norm());
+		if (gradf.norm() < eps) {
+			result.exit = ExitType::EXIT_RESIDUAL;
+			break;
+		}
+
 		Vector ngradf = n * gradf; debug(ngradf);
 		auto optimizeFunc = [f, ngradf, x] (double lambda) -> double {
 			return f(x - lambda * ngradf);
@@ -195,14 +217,23 @@ MethodResult optimizeBroyden(const Function& f1, const Vector& x0, const double&
 		Vector temp = dx - n * dg; debug(temp);
 		Matrix dn = temp * temp.transpose() / (temp.transpose() * dg); debug(dn);
 		n = n + dn; debug(n);
-		debug(gradf.norm());
 		result.iterations++;
 
-		result.steps.push_back({x, f1(x), ngradf, lambda, gradf, n});
+		result.steps.push_back({ x, f1(x), ngradf, lambda, gradf, n });
+
+		if ((x - lastx).norm() < eps) {
+			result.exit = ExitType::EXIT_STEP;
+			break;
+		}
+		/*if (result.iterations > 200) {
+			result.exit = ExitType::EXIT_ITERATIONS;
+			break;
+		}*/
+
+		lastx = x;
 	}
 
 	result.answer = x;
-	result.exit = ExitType::EXTI_RESIDUAL;
 
 	return result;
 }
@@ -237,6 +268,17 @@ std::ostream& operator<<(std::ostream& out, const Matrix& m) {
 		}
 		if (i != m.rows()-1) 
 			out << "; ";
+	}
+	return out;
+}
+
+//-----------------------------------------------------------------------------
+std::ostream& operator<<(std::ostream& out, const ExitType& e) {
+	switch (e) {
+		case EXIT_RESIDUAL: out << "by residual"; break;
+		case EXIT_STEP: out << "by step"; break;
+		case EXIT_ITERATIONS: out << "by iterations"; break;
+		case EXIT_ERROR: out << "by error"; break;
 	}
 	return out;
 }
