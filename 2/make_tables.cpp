@@ -32,7 +32,7 @@ double f3(const Vector& v) {
 void makeSecondTable(const Optimizator& o, const Function& f, const Vector& x0, const double& eps, const std::string& file) {
 	auto result = o(f, x0, eps);
 	std::fstream fout(file);
-	fout << std::precision(10);
+	fout << std::setprecision(10);
 
 	fout << "x0 = " << x0 << ", eps=" << eps << std::endl;
 

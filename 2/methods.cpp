@@ -6,11 +6,11 @@ Function setFunctionToCountCalls(int* where, const Function& f) {
 	return [where, f](const Vector& v) -> double {
 		(*where)++;
 		return f(v);
-	}
+	};
 }
 
 //-----------------------------------------------------------------------------
-MethodResult optimizeBroyden(const Function& f1, const Vector& x0, double eps) {
+MethodResult optimizeBroyden(const Function& f1, const Vector& x0, const double& eps) {
 	MethodResult result;
 	auto f = setFunctionToCountCalls(&result.fCount, f1);
 
@@ -20,7 +20,7 @@ MethodResult optimizeBroyden(const Function& f1, const Vector& x0, double eps) {
 }
 
 //-----------------------------------------------------------------------------
-MethodResult optimizeConjugateGradient(const Function& f, const Vector& x0, double eps) {
+MethodResult optimizeConjugateGradient(const Function& f1, const Vector& x0, const double& eps) {
 	MethodResult result;
 	auto f = setFunctionToCountCalls(&result.fCount, f1);
 
@@ -36,6 +36,7 @@ std::ostream& operator<<(std::ostream& out, const Vector& v) {
 		if (i != v.size()-1) 
 			out << " ";
 	}
+	return out;
 }
 
 //-----------------------------------------------------------------------------
@@ -46,7 +47,8 @@ std::ostream& operator<<(std::ostream& out, const Matrix& m) {
 			if (j != m.cols()-1) 
 				out << " ";
 		}
-		if (j != m.rows()-1) 
+		if (i != m.rows()-1) 
 			out << "; ";
 	}
+	return out;
 }
