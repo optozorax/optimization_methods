@@ -5,6 +5,23 @@
 #include <functional>
 #include <Eigen/Dense>
 
+#include <functional>
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <cmath>
+#include <vector>
+
+//-----------------------------------------------------------------------------
+// Функции для работы с одномерными функциями
+typedef std::function<double(const double&)> OneDimensionFunction;
+double optimizeDichotomy(const OneDimensionFunction& f, double a, double b, double eps);
+double optimizeGoldenRatio(const OneDimensionFunction& f, double a, double b, double eps);
+double optimizeFibonacci(const OneDimensionFunction& f, double a, double b, double eps);
+void findSegment(const OneDimensionFunction& f, double x0, double& a, double& b, double eps = 1);
+
+//-----------------------------------------------------------------------------
+// Работа с многомерными функциями
 struct MethodResult;
 
 // Определяем используемые типы данных
@@ -43,6 +60,10 @@ struct MethodResult
 	// Информация о каждом шаге процесса оптимизации, необходимо для построения таблиц и визуализации
 	std::vector<StepInformation> steps;
 };
+
+double argmin(const OneDimensionFunction& f, double eps);
+
+Vector grad(const Function& f, const Vector& x);
 
 /** Позволяет считать число вызовов функции. */
 Function setFunctionToCountCalls(int* where, const Function& f);
