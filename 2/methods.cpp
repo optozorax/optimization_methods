@@ -1,3 +1,4 @@
+//#include "pch.h"
 #include "methods.h"
 
 //-----------------------------------------------------------------------------
@@ -156,11 +157,14 @@ double argmin(const OneDimensionFunction& f, double eps) {
 //-----------------------------------------------------------------------------
 Vector grad(const Function& f, const Vector& x1) {
 	const double eps = 1e-9;
+	double fx1 = f(x1);
+
 	Vector result(x1.size());
 	Vector x = x1;
+
 	for (int i = 0; i < x.size(); ++i) {
 		x(i) += eps;
-		result[i] = (f(x) - f(x1)) / eps;
+		result[i] = (f(x) - fx1) / eps;
 		x(i) -= eps;
 	}
 	return result;
@@ -239,11 +243,85 @@ MethodResult optimizeBroyden(const Function& f1, const Vector& x0, const double&
 }
 
 //-----------------------------------------------------------------------------
-MethodResult optimizeConjugateGradient(const Function& f1, const Vector& x0, const double& eps) {
+MethodResult optimizeConjugateGradient(const Function& f1, const Vector& x0, const double& eps, const double& epsStep) {
 	MethodResult result;
 	auto f = setFunctionToCountCalls(&result.fCount, f1);
+	result.iterations = 0;
 
-	// ...
+	/////////////////////////////////////////////////////
+#ifdef _DEBUG
+#define debug(a) std::cout << #a << ": " << (a) << std::endl;
+#else
+#define debug(a) ;
+#endif
+
+	// prepare calculation:
+	int dim = x0.size();
+
+	Vector x = x0, x1(dim);
+	Vector s0(dim), s1(dim);
+	Vector grad0(dim), grad1(dim);
+
+	bool optimization = true;
+	while (optimization) {
+		// find first direction
+		grad0 = grad(f, x); debug(grad0);
+		s0 = -grad0;		debug(s0);
+
+		double norm = s0.norm(); debug(norm);
+		if (s0.norm() < epsStep) {
+			result.steps.push_back({ x1, f1(x1), s0, 0, grad0, {} });
+			optimization = false;
+			result.exit = ExitType::EXIT_STEP;
+			break;
+		}
+
+		// processing K step ( k = 1,2,...,dim )
+		for (int i = 0; i < dim; i++) {
+			// calculate x(k)
+			debug(s0);
+			debug(x);
+			auto optimizeFunc = [f, s0, x](double lambda) -> double {
+				return f(x + lambda * s0);
+			};
+			
+			double lambda = argmin(optimizeFunc, eps); debug(lambda);
+			x1 = x + lambda * s0; debug(x1);
+		
+			//Vector sExit = lambda * s0;
+			//double norm = s0.norm();				debug(norm);
+
+
+			result.steps.push_back({ x1, f1(x1), s0, lambda, grad0, {} });
+			result.iterations++;
+
+			// calculate direction to x(k+1)
+			grad1 = grad(f, x1);					debug(grad1);
+			double w = grad1.norm() / grad0.norm(); debug(w);
+			s1 = -grad1 + w * s0;					debug(s1);
+		
+			// prepare next iteration:
+			std::swap(s0, s1);
+			std::swap(grad0, grad1);
+			std::swap(x, x1);
+
+			// check exit
+			//double norm = s0.norm();				debug(norm);
+			if (s0.norm() < epsStep) {
+				optimization = false;
+				result.exit = ExitType::EXIT_STEP;
+				break;
+			}
+		}
+	}
+
+
+	// k == n
+	// swap x0 and x.
+
+
+	//////////////////////////////////////////////
+	result.answer = x;
 
 	return result;
 }
