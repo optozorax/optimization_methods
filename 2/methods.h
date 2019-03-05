@@ -73,7 +73,7 @@ Function setFunctionToCountCalls(int* where, const Function& f);
 MethodResult optimizeBroyden(const Function& f, const Vector& x0, const double& eps);
 
 /** Оптимизация с помощью метода сопряженных градиентов Флетчера-Ривса. */
-MethodResult optimizeConjugateGradient(const Function& f, const Vector& x0, const double& eps);
+MethodResult optimizeConjugateGradient(const Function& f, const Vector& x0, const double& eps, const double& epsStep);
 
 // Функции для вывода векторов и матриц.
 std::ostream& operator<<(std::ostream& out, const Vector& v);
