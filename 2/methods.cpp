@@ -101,6 +101,12 @@ double optimizeFibonacci(const OneDimensionFunction& f, double a, double b, doub
 }
 
 //-----------------------------------------------------------------------------
+double optimizeParabola(const OneDimensionFunction& f, double a, double b, double eps) {
+	// ...
+	return 0;
+}
+
+//-----------------------------------------------------------------------------
 void findSegment(const OneDimensionFunction& f, double x0, double& a, double& b, double eps) {
 	double h;
 	double f1 = f(x0);
@@ -148,16 +154,18 @@ void findSegment(const OneDimensionFunction& f, double x0, double& a, double& b,
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-double argmin(const OneDimensionFunction& f, double eps) {
-	double a, b;
-	findSegment(f, 0, a, b);
-	return optimizeGoldenRatio(f, a, b, eps);
+ArgMinFunction bindArgmin(const OneDimenshionExtremumFinder& finder) {
+	return [finder](const OneDimensionFunction& f, double eps) {
+		double a, b;
+		findSegment(f, 0, a, b);
+		return finder(f, a, b, eps);
+	};
 }
 
 //-----------------------------------------------------------------------------
 Vector grad(const Function& f, const Vector& x1) {
 	const double eps = 1e-9;
-	double fx1 = f(x1);
+	const double fx1 = f(x1);
 
 	Vector result(x1.size());
 	Vector x = x1;
@@ -180,7 +188,7 @@ Function setFunctionToCountCalls(int* where, const Function& f) {
 }
 
 //-----------------------------------------------------------------------------
-MethodResult optimizeBroyden(const Function& f1, const Vector& x0, const double& eps) {
+MethodResult optimizeBroyden(const Function& f1, const ArgMinFunction& argmin, const Vector& x0, const double& eps) {
 	MethodResult result;
 	auto f = setFunctionToCountCalls(&result.fCount, f1);
 	result.iterations = 0;
@@ -243,10 +251,13 @@ MethodResult optimizeBroyden(const Function& f1, const Vector& x0, const double&
 }
 
 //-----------------------------------------------------------------------------
-MethodResult optimizeConjugateGradient(const Function& f1, const Vector& x0, const double& eps, const double& epsStep) {
+MethodResult optimizeConjugateGradient(const Function& f1, const ArgMinFunction& argmin, const Vector& x0, const double& eps) {
 	MethodResult result;
 	auto f = setFunctionToCountCalls(&result.fCount, f1);
 	result.iterations = 0;
+
+	double argmineps = 1e-7;
+	double gradNorm = 0, grad1Norm = 0;
 
 	/////////////////////////////////////////////////////
 #ifdef _DEBUG
@@ -265,11 +276,11 @@ MethodResult optimizeConjugateGradient(const Function& f1, const Vector& x0, con
 	bool optimization = true;
 	while (optimization) {
 		// find first direction
-		grad0 = grad(f, x); debug(grad0);
-		s0 = -grad0;		debug(s0);
+		grad0 = grad(f, x); //debug(grad0);
+		s0 = -grad0;		//debug(s0);
 
-		double norm = s0.norm(); debug(norm);
-		if (s0.norm() < epsStep) {
+		gradNorm = s0.norm();
+		if (gradNorm < eps) {
 			result.steps.push_back({ x1, f1(x1), s0, 0, grad0, {} });
 			optimization = false;
 			result.exit = ExitType::EXIT_STEP;
@@ -277,41 +288,41 @@ MethodResult optimizeConjugateGradient(const Function& f1, const Vector& x0, con
 		}
 
 		// processing K step ( k = 1,2,...,dim )
-		for (int i = 0; i < dim; i++) {
+		for (int i = 0; i < dim+1; i++) {
 			// calculate x(k)
-			debug(s0);
-			debug(x);
+		//	debug(s0);
+		//	debug(x);
 			auto optimizeFunc = [f, s0, x](double lambda) -> double {
 				return f(x + lambda * s0);
 			};
 			
-			double lambda = argmin(optimizeFunc, eps); debug(lambda);
-			x1 = x + lambda * s0; debug(x1);
-		
-			//Vector sExit = lambda * s0;
-			//double norm = s0.norm();				debug(norm);
-
+			double lambda = argmin(optimizeFunc, argmineps); //debug(lambda);
+			x1 = x + lambda * s0; //debug(x1);
 
 			result.steps.push_back({ x1, f1(x1), s0, lambda, grad0, {} });
 			result.iterations++;
 
 			// calculate direction to x(k+1)
-			grad1 = grad(f, x1);					debug(grad1);
-			double w = grad1.norm() / grad0.norm(); debug(w);
-			s1 = -grad1 + w * s0;					debug(s1);
+			grad1 = grad(f, x1);					//debug(grad1);
+			grad1Norm = grad1.norm();		  //debug(grad1Norm);
+			double w = grad1Norm / gradNorm; //debug(w);
+			s1 = -grad1 + w * s0;					//debug(s1);
 		
 			// prepare next iteration:
 			std::swap(s0, s1);
 			std::swap(grad0, grad1);
 			std::swap(x, x1);
+			std::swap(gradNorm, grad1Norm);
 
 			// check exit
 			//double norm = s0.norm();				debug(norm);
-			if (s0.norm() < epsStep) {
+			if (s0.norm() < eps) {
 				optimization = false;
 				result.exit = ExitType::EXIT_STEP;
 				break;
 			}
+
+			debug(i);
 		}
 	}
 

@@ -15,9 +15,11 @@
 //-----------------------------------------------------------------------------
 // Функции для работы с одномерными функциями
 typedef std::function<double(const double&)> OneDimensionFunction;
+typedef std::function<double(const OneDimensionFunction&, double, double, double)> OneDimenshionExtremumFinder;
 double optimizeDichotomy(const OneDimensionFunction& f, double a, double b, double eps);
 double optimizeGoldenRatio(const OneDimensionFunction& f, double a, double b, double eps);
 double optimizeFibonacci(const OneDimensionFunction& f, double a, double b, double eps);
+double optimizeParabola(const OneDimensionFunction& f, double a, double b, double eps);
 void findSegment(const OneDimensionFunction& f, double x0, double& a, double& b, double eps = 1);
 
 //-----------------------------------------------------------------------------
@@ -28,7 +30,8 @@ struct MethodResult;
 typedef Eigen::MatrixXd Matrix;
 typedef Eigen::VectorXd Vector;
 typedef std::function<double(const Vector&)> Function;
-typedef std::function<MethodResult(const Function&, const Vector&, const double&)> Optimizator;
+typedef std::function<double(const OneDimensionFunction&, const double&)> ArgMinFunction;
+typedef std::function<MethodResult(const Function&, const ArgMinFunction&, const Vector&, const double&)> Optimizator;
 
 /** Доступная информация на каждом шаге. Нужна для построения таблиц и визуализации. */
 struct StepInformation
@@ -62,7 +65,7 @@ struct MethodResult
 	std::vector<StepInformation> steps;
 };
 
-double argmin(const OneDimensionFunction& f, double eps);
+ArgMinFunction bindArgmin(const OneDimenshionExtremumFinder& finder);
 
 Vector grad(const Function& f, const Vector& x);
 
@@ -70,10 +73,10 @@ Vector grad(const Function& f, const Vector& x);
 Function setFunctionToCountCalls(int* where, const Function& f);
 
 /** Оптимизация с помощью метода Бройдена. */
-MethodResult optimizeBroyden(const Function& f, const Vector& x0, const double& eps);
+MethodResult optimizeBroyden(const Function& f, const ArgMinFunction& argmin, const Vector& x0, const double& eps);
 
 /** Оптимизация с помощью метода сопряженных градиентов Флетчера-Ривса. */
-MethodResult optimizeConjugateGradient(const Function& f, const Vector& x0, const double& eps, const double& epsStep);
+MethodResult optimizeConjugateGradient(const Function& f, const ArgMinFunction& argmin, const Vector& x0, const double& eps);
 
 // Функции для вывода векторов и матриц.
 std::ostream& operator<<(std::ostream& out, const Vector& v);

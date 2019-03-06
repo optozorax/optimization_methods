@@ -3,44 +3,26 @@
 #include <string>
 #include <fstream>
 #include "methods.h"
+#include "funcs.h"
+#include "visualize/visualize.h"
 
-//-----------------------------------------------------------------------------
-double f1(const Vector& v) {
-	const double& x = v(0);
-	const double& y = v(1);
-	return 100*(y-x)*(y-x) + (1-x)*(1-x);
-}
-
-//-----------------------------------------------------------------------------
-double f2(const Vector& v) {
-	const double& x = v(0);
-	const double& y = v(1);
-	return 100*(y-x*x)*(y-x*x) + (1-x)*(1-x);
-}
-
-//-----------------------------------------------------------------------------
-double f3(const Vector& v) {
-	const double& x = v(0);
-	const double& y = v(1);
-	return 0; // TODO узнать какой у нас вариант
-}
-
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-
-void makeSecondTable(const Optimizator& o, const Function& f, const Vector& x0, const double& eps, const std::string& file) {
-	auto result = o(f, x0, eps);
-	std::fstream fout(file);
+void makeSecondTable(const Optimizator& o, const ArgMinFunction& argmin, const Function& f, const Vector& x0, const double& eps, const std::string& file) {
+	auto result = o(f, argmin, x0, eps);
+	std::ofstream fout(file + ".txt");
 	fout << std::setprecision(10);
 
 	fout << "x0 = " << x0 << ", eps=" << eps << std::endl;
 
+	fout << "answer: " << result.answer << ", fCount: " << result.fCount << ", exit type: " << result.exit << ", iterations: " << result.iterations << std::endl;
+
+	fout << "point\tvalue\tdir\tlambda\tgrad\thessian" << std::endl;
 	for (auto& i : result.steps) {
 		fout << i.point << "\t" << i.value << "\t" << i.dir << "\t" << i.lambda << "\t" << i.grad << "\t" << i.hessian << std::endl;
 	}
 
 	fout.close();
+
+	//visualize(f, result.steps, 900, file);
 }
 
 //-----------------------------------------------------------------------------
@@ -76,14 +58,20 @@ int main() {
 				Начальная точка одна
 	*/
 
-	Vector x0 = {0, 0};
-	double eps = 0.001;
+	Vector x0(2); x0 << 0, 0;
+	double eps = 1e-5;
 
-	makeSecondTable(optimizeBroyden, f1, x0, eps, "table2_f1_broyden.txt");
-	makeSecondTable(optimizeBroyden, f2, x0, eps, "table2_f2_broyden.txt");
-	makeSecondTable(optimizeBroyden, f3, x0, eps, "table2_f3_broyden.txt");
+	auto argmin = bindArgmin(optimizeGoldenRatio);
 
-	makeSecondTable(optimizeConjugateGradient, f1, x0, eps, "table2_f1_gradient.txt");
-	makeSecondTable(optimizeConjugateGradient, f2, x0, eps, "table2_f2_gradient.txt");
-	makeSecondTable(optimizeConjugateGradient, f3, x0, eps, "table2_f3_gradient.txt");
+	makeSecondTable(optimizeBroyden, argmin, f1, x0, eps, "table2_f1_broyden");
+	makeSecondTable(optimizeBroyden, argmin, f2, x0, eps, "table2_f2_broyden");
+	makeSecondTable(optimizeBroyden, argmin, f3, x0, eps, "table2_f3_broyden");
+	makeSecondTable(optimizeBroyden, argmin, f4, x0, eps, "table2_f4_broyden");
+	makeSecondTable(optimizeBroyden, argmin, f5, x0, eps, "table2_f5_broyden");
+
+	makeSecondTable(optimizeConjugateGradient, argmin, f1, x0, eps, "table2_f1_gradient");
+	makeSecondTable(optimizeConjugateGradient, argmin, f2, x0, eps, "table2_f2_gradient");
+	makeSecondTable(optimizeConjugateGradient, argmin, f3, x0, eps, "table2_f3_gradient");
+	makeSecondTable(optimizeConjugateGradient, argmin, f4, x0, eps, "table2_f4_gradient");
+	makeSecondTable(optimizeConjugateGradient, argmin, f5, x0, eps, "table2_f5_gradient");
 }
