@@ -5,4 +5,13 @@
 
 #include "../methods.h"
 
-void visualize(const Function& f, const std::vector<StepInformation>& steps, const int& size, const std::string& filename);
+void visualize(
+	const Optimizator& o1, 
+	const Optimizator& o2,
+	const ArgMinFunction& argmin, 
+	const Function& f, 
+	const Vector& x0, 
+	const double& eps, 
+	const int& size,
+	const std::string& file
+);
