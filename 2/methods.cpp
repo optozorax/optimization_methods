@@ -1,4 +1,4 @@
-#include "pch.h"
+//#include "pch.h"
 #include "methods.h"
 
 //-----------------------------------------------------------------------------
@@ -118,12 +118,11 @@ double optimizeParabola(const OneDimensionFunction& f, double a, double b, doubl
 	double f1 = f(x1);
 	double f2 = f(x2);
 	double f3 = f(x3);
-
-	std::cout << "x: " << x1 << " " << x2 << " " << x3 << std::endl;
-	std::cout << "f: " << f1 << " " << f2 << " " << f3 << std::endl;
+	double fa = f1, fb = f3;
 
 	bool finding = true;
 	int iter = 0;
+	double fx;
 	while (finding) {
 
 		// parabola y = a0 + a1(x - x1) + a2(x - x1)(x - x2);
@@ -141,11 +140,7 @@ double optimizeParabola(const OneDimensionFunction& f, double a, double b, doubl
 			}
 		}
 
-		double fx = f(x);
-
-		//std::cout.precision(15);
-		//std::cout << "_________________________________________________________" << std::endl;
-		//std::cout << iter << " " << x << " " << fx << std::endl;
+		fx = f(x);
 
 		// find new section:
 		xPrev = x;
@@ -176,11 +171,21 @@ double optimizeParabola(const OneDimensionFunction& f, double a, double b, doubl
 				x2 = x; f2 = fx;
 			}
 		}
-
-		//std::cout <<"x: " << x1 << " " << x2 << " " << x3 << std::endl;
-		//std::cout << "f: " << f1 << " " << f2 << " " << f3 << std::endl;
-
 	}
+
+	if (fa < fx) {
+		if (fb < fa)
+			return b;
+		else
+			return a;
+	}
+	if (fb < fx) {
+		if (fa < fb)
+			return a;
+		else
+			return b;
+	}
+
 	return x;
 }
 
@@ -351,6 +356,8 @@ MethodResult optimizeConjugateGradient(const Function& f1, const ArgMinFunction&
 	Vector s0(dim), s1(dim);
 	Vector grad0(dim), grad1(dim);
 
+	result.steps.push_back({ x, f1(x), {}, 0, {}, {} });
+
 	bool optimization = true;
 	while (optimization) {
 		// find first direction
@@ -418,7 +425,7 @@ MethodResult optimizeConjugateGradient(const Function& f1, const ArgMinFunction&
 //-----------------------------------------------------------------------------
 std::ostream& operator<<(std::ostream& out, const Vector& v) {
 	for (int i = 0; i < v.size(); ++i) {
-		out << v(i);
+		out << double(v(i));
 		if (i != v.size()-1) 
 			out << " ";
 	}
@@ -429,7 +436,7 @@ std::ostream& operator<<(std::ostream& out, const Vector& v) {
 std::ostream& operator<<(std::ostream& out, const Matrix& m) {
 	for (int i = 0; i < m.rows(); ++i) {
 		for (int j = 0; j < m.cols(); ++j) {
-			out << m(i, j);
+			out << double(m(i, j));
 			if (j != m.cols()-1) 
 				out << " ";
 		}
