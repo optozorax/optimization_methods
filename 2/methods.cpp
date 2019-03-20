@@ -1,4 +1,4 @@
-//#include "pch.h"
+#include "pch.h"
 #include "methods.h"
 
 //-----------------------------------------------------------------------------
@@ -102,8 +102,86 @@ double optimizeFibonacci(const OneDimensionFunction& f, double a, double b, doub
 
 //-----------------------------------------------------------------------------
 double optimizeParabola(const OneDimensionFunction& f, double a, double b, double eps) {
-	// ...
-	return 0;
+	/*кроме унимодальности, налагается дополнительное требование
+	достаточной гладкости (по крайней мере, непрерывности).
+	// x1 < x2 < x3
+	// f(x1) >= f(x2)
+	// f(x3) >= f(x2)
+	*/
+
+	double x1 = a;
+	double x2 = (a + b) / 2;
+	double x3 = b;
+	double x = 0;			// current approximate xmin
+	double xPrev = 0;		// pervious approximate xmin
+
+	double f1 = f(x1);
+	double f2 = f(x2);
+	double f3 = f(x3);
+
+	std::cout << "x: " << x1 << " " << x2 << " " << x3 << std::endl;
+	std::cout << "f: " << f1 << " " << f2 << " " << f3 << std::endl;
+
+	bool finding = true;
+	int iter = 0;
+	while (finding) {
+
+		// parabola y = a0 + a1(x - x1) + a2(x - x1)(x - x2);
+		double a0 = f1;
+		double a1 = (f2 - f1) / (x2 - x1);
+		double a2 = ((f3 - f1) / (x3 - x1) - (f2 - f1) / (x2 - x1)) / (x3 - x2);
+
+		x = 0.5 * (x1 + x2 - a1 / a2); // next approximation of min point
+
+		// check out
+		if (iter++ > 0) {
+			if (fabs(x - xPrev) < eps) {
+				finding = false;
+				break;
+			}
+		}
+
+		double fx = f(x);
+
+		//std::cout.precision(15);
+		//std::cout << "_________________________________________________________" << std::endl;
+		//std::cout << iter << " " << x << " " << fx << std::endl;
+
+		// find new section:
+		xPrev = x;
+
+		if (x <= x2) {
+			if (fx >= f2) {
+				// xmin  in [x, x3]
+				x1 = x; f1 = fx;
+				// x2 and x3 stay the same
+			}
+			else {	// fx < f2 
+				// xmin in [x1, x2]
+				// x1 stay the same
+				x3 = x2; f3 = f2;
+				x2 = x; f2 = fx;
+			}
+		}
+		else { // x > x2
+			if (fx > f2) {
+				// xmin in [x1, x]
+				// x1 and x2 stay the same
+				x3 = x, f3 = fx;
+			}
+			else {// fx <= f2 
+				// xmin in [x2, x3]
+				// x3 stay the same
+				x1 = x2; f1 = f2;
+				x2 = x; f2 = fx;
+			}
+		}
+
+		//std::cout <<"x: " << x1 << " " << x2 << " " << x3 << std::endl;
+		//std::cout << "f: " << f1 << " " << f2 << " " << f3 << std::endl;
+
+	}
+	return x;
 }
 
 //-----------------------------------------------------------------------------
