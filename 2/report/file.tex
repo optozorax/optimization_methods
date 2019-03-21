@@ -1,0 +1,177 @@
+\pgfplotstableset{
+	begin table={\rowcolors{2}{gray!25}{white}\begin{tabular}},
+	end table=\end{tabular},
+}
+
+\newcommand{\typesetfirsttable}[1]{
+\scalebox{.75}{\pgfplotstabletypeset[
+	skip first n=1,
+	columns/10^i/.style={column name={$\varepsilon = 10^i$},},
+	columns/iter/.style={column name={\scriptsize Итераций},},
+	columns/fCount/.style={column name={\scriptsize Вычислений $f$},},
+	columns/grad.norm()/.style={column name={$||\nabla f(x, y)||_{L_2}$},},
+	columns/value/.style={column name={$f(x, y)$}, column type/.add={}{|},},
+	every head row/.style={before row=\hline,after row=\hline\hline}, 
+	every last row/.style={after row=\hline},
+	column type/.add={|}{},
+	col sep=tab,
+]{#1.txt}}
+}
+
+\newcommand{\typesetsecondtable}[1]{
+\noindent\begin{center}\scalebox{.55}{\pgfplotstabletypeset[
+	skip first n=2,
+	columns/i/.style={column name={$i$},},
+	columns/point/.style={string type, column name={$(x, y)$},},
+	columns/value/.style={column name={$f(x, y)$},},
+	columns/dir/.style={string type, column name={$s$},},
+	columns/lambda/.style={column name={$\lambda$},},
+	columns/diff_point/.style={string type, column name={$\mathbf{x}_i-\mathbf{x}_{i-1}$},},
+	columns/diff_value/.style={column name={$f(\mathbf{x}_i)-f(\mathbf{x}_{i-1})$},},
+	columns/grad/.style={string type, column name={$\nabla f(x, y)$},},
+	columns/hessian/.style={string type, column name={$H(f)$}, column type/.add={}{|},},
+	every head row/.style={before row=\hline,after row=\hline\hline}, 
+	every last row/.style={after row=\hline},
+	column type/.add={|}{},
+	col sep=tab,
+]{#1.txt}}
+\end{center}
+}
+
+\newcommand{\typesetthreeimages}[1]{
+\noindent\includegraphics[width=.32\textwidth]{#1_0.png}
+\noindent\includegraphics[width=.32\textwidth]{#1_1.png}
+\noindent\includegraphics[width=.32\textwidth]{#1_2.png}
+}
+
+\newcommand{\insertcomparison}[1]{
+\noindent\begin{tabu}{X[c]X[c]}
+Метод Бройдена &
+Метод Сопряженных Градиентов \\
+\typesetfirsttable{table1_#1_broyden} &
+\typesetfirsttable{table1_#1_gradient} \\
+\end{tabu}
+}
+
+%------------------------------------------------------------------------------
+%------------------------------------------------------------------------------
+%------------------------------------------------------------------------------
+
+\mytitlepage{прикладной математики}{2}{Методы оптимизации}{Методы спуска}{ПМ-63}{
+\ltcell{Шепрут И.И.\\Крашенинник Н.А.\\Пешкичева А.А.}}{4}{Чимитова Е.В.}{2019}
+
+\section{Цель работы}
+
+Ознакомиться с методами поиска минимума фукнции $n$ переменных в оптимизационных задачах без ограничений.
+
+\section{Задание}
+
+\noindent\begin{easylist}
+\ListProperties(Hang1=true, Margin2=12pt, Style1**=$\bullet$ , Hide2=1, Hide1=1)
+& Реализовать два метода поиска экстремума функции: \textbf{метод Бройдена}, \textbf{метод Сопряженных Градиентов в модификации Флетчера-Ривса}.
+& Исследовать алгоритмы на квадратичной функции, на функции Розенброка и на заданной по варианту функции. Исследовать в зависимости от различной точности и начального приближения.
+& Построить траекторию спуска различных алгоритмов, наложить эту траекторию на рисунок с линиями равного уровня заданной функции.
+& Реализовать метод парабол для одномерного поиска. Исследовать влияние точности одномерного поиска на общее количество итераций и вычислений функции при разных методах одномерного поиска.
+\end{easylist}
+
+\section{Таблицы и визуализация}
+
+Далее для всех пунктов: $\mathbf{x}_0=(0, 0)^T$; если явно не указано, то $\varepsilon = 0.001$; если явно не указано, то метод одномерного поиска: поиск отрезка из предыдущей лабораторной работы + метод золотого сечения.
+
+Три изображения в ряд показывают следующее: на первом изображении --- траекторию сходимости; на втором и третьем изображении --- зависимость числа вычислений функции от начального приближения для различных методов. На первом изображении показны изолинии функции вместе с траекторией сходимости каждого метода. На втором и третьем изображении показана та же область, что и на первой, только градиентом показано число вычислений функции для сходимости метода. Цвет ближе к белому означает, что требуется меньше вычислений функции, ближе к черному, что больше. Для второй и третьей картинки показано максимальное, минимальное и среднее число вычислений функции для сходимости на этой области.
+
+На основании этих изображений можно делать выводы о характере сходимости метода в зависимости от начального приближения.
+
+\subsection{Квадратичная функция}
+
+Функция $100(y-x)^2+(1-x)^2$.
+
+\subsubsection{Первая таблица}
+\insertcomparison{f1}
+\subsubsection{Изображения}
+\typesetthreeimages{image_f1}
+\subsubsection{Вторая таблица для метода Бройдена}
+\typesetsecondtable{table2_f1_broyden}
+\subsubsection{Вторая таблица для метода сопряженных градиентов}
+\typesetsecondtable{table2_f1_gradient}
+
+\subsection{Функция Розенброка}
+Функция $100(y-x^2)^2+(1-x)^2$
+
+\subsubsection{Первая таблица}
+\insertcomparison{f2}
+\subsubsection{Изображения}
+\typesetthreeimages{image_f2}
+\subsubsection{Вторая таблица для метода Бройдена}
+\typesetsecondtable{table2_f2_broyden}
+\subsubsection{Вторая таблица для метода сопряженных градиентов}
+\typesetsecondtable{table2_f2_gradient}
+% \typesetsecondtable{table2_f2_gradient_1}
+% \typesetsecondtable{table2_f2_gradient_2}
+% \typesetsecondtable{table2_f2_gradient_3}
+% \typesetsecondtable{table2_f2_gradient_4}
+
+Дальше таблица не показана в целях экономии места, так как она слишком большая.
+
+\subsection{Функция по варианту}
+
+Функция $\frac{2}{1+\left(\frac{x-1}{2}\right)^2+\left(\frac{y-2}{1}\right)^2} + \frac{1}{1+\left(\frac{x-3}{3}\right)^2+\left(\frac{y-1}{3}\right)^2}$.
+
+\subsubsection{Первая таблица}
+\insertcomparison{f3}
+\subsubsection{Изображения}
+\typesetthreeimages{image_f3}
+\subsubsection{Вторая таблица для метода Бройдена}
+\typesetsecondtable{table2_f3_broyden}
+\subsubsection{Вторая таблица для метода сопряженных градиентов}
+\typesetsecondtable{table2_f3_gradient}
+
+\subsection{Функция по варианту + метод парабол}
+
+Для одномерного поиска использовался метод поиска отрезка из прошлой лабы + метод парабол на этом отрезке.
+
+\subsubsection{Первая таблица}
+\insertcomparison{parabola}
+\subsubsection{Изображения}
+\typesetthreeimages{image_parabola}
+
+\subsection{Исследования МСГ на функции Розенброка}
+
+Функция $t\cdot(y-x^2)^2+(1-x)^2$. При $t=0$ это квадратичная функция, при $t=100$ эта функция становится функцией Розенброка.
+
+\noindent\begin{tikzpicture}
+\begin{axis}[xlabel=t,ylabel=Вычислений функции,width=\textwidth, height=6cm]
+\addplot[black, no markers] table [skip first n=1, y=fCount, x=t]{table_f2.txt};
+\end{axis}
+\end{tikzpicture}	
+
+\section{Выводы}
+
+\noindent\begin{easylist}
+\ListProperties(Start1=1, Hang1=true, Margin2=12pt, Style1**=, Style2**=$\bullet$ , Hide2=2, Hide1=0)
+& \textit{О объеме вычислений в зависимости от точности:}
+&& Для метода Бройдена количество итераций на всех трех функциях получается примерно одинаковым, увеличивается только число вычислений функции. Наверняка это связано с одномерным поиском. Скорее всего число вычислений функции можно значительно уменьшить, задавая специальную точность для одномерного поиска: на первых итерациях маленькую точность; на последней итерации необходимую точность.
+&& Для МСГ количество итераций на всех трех функциях растет с ростом требуемой точности. Так же растет количество вычислений функции.
+& \textit{О объеме вычислений в зависимости от начального приближения:}
+&& Для метода Бройдена на функции по варианту плотность светлых областей больше, чем для МСГ. Это означает, что вероятность выбрать хорошее начальное приближение для Метода Бройдена намного выше. Для метода же сопряженных градиентов много темных областей, и площадь светлых значительно меньше.
+&& Чем ближе к точке минимума, тем быстрее получается сходимость обоих методов. Но всё же существуют некоторые области, на расстоянии от минимума, на которые это правило не распространяется.
+&& Для обоих методов есть некоторая кривая, исходящая из минимума, на которой оба метода сходятся очень быстро. Пока не понятно что это за кривая.
+& \textit{Сравнение метода парабол и золотого сечения:} метод парабол практически не влияет на число итераций, но зато значительно влияет на число вычислений функции. По сравнению с методом золотого сечения количество вычислений функции уменьшилось чуть больше, чем вдвое.
+& \textit{О сходимости МСГ на функции розенброка:} на функции Розенброка МСГ сходится очень плохо. И изменение параметра от 0 до 100 незначительно влияет на это. Иногда наблюдаются локальные минимумы.
+& \textit{Сравнение МСГ и метода Бройдена:} на данных функциях метод Бройдена значительно лучше МСГ.
+\end{easylist}
+
+\section{Код программы}
+
+\subsection{Заголовочные файлы}
+
+\mycodeinput{c++}{../funcs.h}{funcs.h}
+\mycodeinput{c++}{../methods.h}{methods.h}
+\mycodeinput{c++}{../visualize/visualize.h}{visualize.h}
+
+\subsection{Файлы исходного кода}
+
+\mycodeinput{c++}{../make_tables.cpp}{make\_tables.cpp}
+\mycodeinput{c++}{../funcs.cpp}{funcs.cpp}
+\mycodeinput{c++}{../methods.cpp}{methods.cpp}
+\mycodeinput{c++}{../visualize/visualize.cpp}{visualize.cpp}

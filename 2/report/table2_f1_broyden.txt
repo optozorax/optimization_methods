@@ -1,0 +1,6 @@
+x0 = $(0, 0)^T$, eps=0.001
+answer: $(1, 1)^T$, fCount: 55, exit type: by residual, iterations: 2
+i	point	value	dir	lambda	diff_point	diff_value	grad	hessian
+0	$(0, 0)^T$	1	$(0, 0)^T$	0	$(0, 0)^T$	0	$(-2, 0)^T$	\scalebox{.5}{$\left(\,\begin{matrix}1&0\\0&1\end{matrix}\,\right)$}
+1	$(0.97\cdot 10^{-2}, 0)^T$	0.9901029349	$(-2, 0)^T$	0.004851928469	$(0.97\cdot 10^{-2}, 0)^T$	0.009897065057	$(-0.04, -1.9)^T$	\scalebox{.5}{$\left(\,\begin{matrix}0.5&0.5\\0.5&0.5\end{matrix}\,\right)$}
+2	$(1, 1)^T$	1.527162543e-08	$(-0.99, -1)^T$	1.002388088	$(0.99, 1)^T$	0.9901029197	$(0.85\cdot 10^{-4}, -0.33\cdot 10^{-3})^T$	\scalebox{.5}{$\left(\,\begin{matrix}0.5&0.5\\0.5&0.51\end{matrix}\,\right)$}

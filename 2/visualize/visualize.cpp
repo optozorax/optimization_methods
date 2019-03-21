@@ -15,6 +15,8 @@ void visualize(
 	const Vector& x0, 
 	const double& eps, 
 	const int& size, 
+	const std::wstring& o1name, 
+	const std::wstring& o2name,
 	const std::string& file) {
 
 	auto result1 = o1(f, argmin, x0, eps);
@@ -81,6 +83,50 @@ void visualize(
 
 		drawSteps(setAlpha(Red, 192), result1.steps);
 		drawSteps(setAlpha(Blue, 192), result2.steps);
+
+		{
+			ImageDrawing_win imgw(&img);
+			std::wstringstream sout;
+			sout << L"Траектория сходимости методов\n" + o1name + L"\n" + o2name + L"\n";
+			imgw.setTextStyle(TextStyle(20, L"Consolas", TEXT_NONE));
+			auto textsize = imgw.getTextSize(sout.str());
+			Point_i start(5, 5);
+			Point_i offset(3, 3);
+				
+			start -= offset;
+			textsize += 2*offset;
+
+			Polygon_d poly;
+			poly.array.push_back(start);
+			poly.array.push_back(start + Point_d(textsize.x, 0));
+			poly.array.push_back(start + textsize);
+			poly.array.push_back(start + Point_d(0, textsize.y));
+			img.setBrush(setAlpha(White, 192));
+			img.drawPolygon(poly);
+
+			sout.str(L"");
+			sout << L"Траектория сходимости методов" << std::endl;
+			imgw.setPen(Pen(1, Black));
+			imgw.drawText(Point_d(5, 5), sout.str());
+
+			sout.str(L"");
+			sout << " \n" << o1name << std::endl;
+			imgw.setPen(Pen(1, Red));
+			imgw.drawText(Point_d(5, 5), sout.str());
+
+			sout.str(L"");
+			sout << " \n \n" << o2name << std::endl;
+			imgw.setPen(Pen(1, Blue));
+			imgw.drawText(Point_d(5, 5), sout.str());
+
+			for (int i = 0; i < img.width(); i++) {
+				for (int j = 0; j < img.height(); j++) {
+					Color& clr = img[Point_i(i, j)];
+					if (getAlpha(clr) == 0)
+						clr = setAlpha(clr, 255);
+				}
+			}
+		}
 
 		twg::saveToPng(&img, std::wstring(file.begin(), file.end()) + L"_0.png");
 	}
@@ -169,23 +215,71 @@ void visualize(
 		{
 			ImageDrawing_win img(&img1);
 			std::wstringstream sout;
+			sout << o1name << std::endl;
 			sout << "min: " << int(min1) << std::endl;
 			sout << "max: " << int(max1) << std::endl;
 			sout << "avg: " << int(average1) << std::endl;
 			img.setTextStyle(TextStyle(20, L"Consolas", TEXT_NONE));
-			img.setPen(Pen(1, Bitcoin));
+			img.setPen(Pen(1, Black));
+
+			auto textsize = img.getTextSize(sout.str());
+			Point_i start(5, 5);
+			Point_i offset(3, 3);
+
+			start -= offset;
+			textsize += 2 * offset;
+
+			Polygon_d poly;
+			poly.array.push_back(start);
+			poly.array.push_back(start + Point_d(textsize.x, 0));
+			poly.array.push_back(start + textsize);
+			poly.array.push_back(start + Point_d(0, textsize.y));
+			img1.setBrush(setAlpha(White, 192));
+			img1.drawPolygon(poly);
+
 			img.drawText(Point_d(5, 5), sout.str());
+			for (int i = 0; i < img.width(); i++) {
+				for (int j = 0; j < img.height(); j++) {
+					Color& clr = img[Point_i(i, j)];
+					if (getAlpha(clr) == 0)
+						clr = setAlpha(clr, 255);
+				}
+			}
 		}
 
 		{
 			ImageDrawing_win img(&img2);
 			std::wstringstream sout;
+			sout << o2name << std::endl;
 			sout << "min: " << int(min2) << std::endl;
 			sout << "max: " << int(max2) << std::endl;
 			sout << "avg: " << int(average2) << std::endl;
 			img.setTextStyle(TextStyle(20, L"Consolas", TEXT_NONE));
-			img.setPen(Pen(1, Bitcoin));
+			img.setPen(Pen(1, Black));
+
+			auto textsize = img.getTextSize(sout.str());
+			Point_i start(5, 5);
+			Point_i offset(3, 3);
+
+			start -= offset;
+			textsize += 2 * offset;
+
+			Polygon_d poly;
+			poly.array.push_back(start);
+			poly.array.push_back(start + Point_d(textsize.x, 0));
+			poly.array.push_back(start + textsize);
+			poly.array.push_back(start + Point_d(0, textsize.y));
+			img2.setBrush(setAlpha(White, 192));
+			img2.drawPolygon(poly);
+
 			img.drawText(Point_d(5, 5), sout.str());
+			for (int i = 0; i < img.width(); i++) {
+				for (int j = 0; j < img.height(); j++) {
+					Color& clr = img[Point_i(i, j)];
+					if (getAlpha(clr) == 0)
+						clr = setAlpha(clr, 255);
+				}
+			}
 		}
 
 		twg::saveToPng(&img1, std::wstring(file.begin(), file.end()) + L"_1.png");
