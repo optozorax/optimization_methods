@@ -424,6 +424,78 @@ MethodResult optimizeConjugateGradient(const Function& f1, const ArgMinFunction&
 }
 
 //-----------------------------------------------------------------------------
+MethodResult optimizeHookeJeeves(const Function& f1, const ArgMinFunction& argmin, const Vector& x0, const double& eps) {
+	MethodResult result;
+	auto f = setFunctionToCountCalls(&result.fCount, f1);
+	result.iterations = 0;
+
+	double argmineps = 1e-7;
+
+	// prepare calculation:
+	double dx = 1e-3;		// start dx value
+	Vector x = x0;
+	Vector x1 = x0;
+	Vector s = x0;			// direction to 1D minimization
+
+	double f0 = f(x0);		// start f value
+	double f1val = 0;			// value in next finding point
+
+	// optimization:
+	while (true) {
+		// examining search
+		bool succesfulStep = false;
+
+		do {
+			for (int i = 0; i < x1.size(); i++) {
+				double fp = 0;			// value in x + dx point
+				double fm = 0;			// value in x - dx point
+
+				double temp = x1[i];
+				x1[i] += dx;
+				fp = f(x1);
+
+				if (fp > f0) {
+					x1[i] = temp - dx;
+					fm = f(x1);
+
+					if (fm > f0) x1[i] = temp;	// x1[i] not changed
+					else f0 = fm;
+				}
+				else f0 = fp;
+			}
+
+			if (x1 == x) dx /= 2;
+			else succesfulStep = true;
+
+		} while (!succesfulStep);
+
+		// minimization in finded direction 
+		s = x1 - x;		// direction
+
+		auto optimizeFunc = [f, s, x](double lambda) -> double {
+			return f(x + lambda * s);
+		};
+
+		double lambda = argmin(optimizeFunc, argmineps);
+		x1 = x0 + lambda * s; //debug(x1);
+
+		f1val = f(x1);
+
+		// check value exit:
+		if (abs(f1val - f0) < eps) break;
+		else {	// prepare next iteration:
+			std::swap(f1val, f0);
+			std::swap(x1, x);
+		}
+
+		// check step exit:
+				// there shoulb be check step exit.
+	}
+
+	result.answer = x1;
+	return result;
+}
+ 
 std::string write_for_latex_double(double v, int precision) {
 	int power = log(std::fabs(v)) / log(10.0);
 	double value = v / pow(10.0, power);
