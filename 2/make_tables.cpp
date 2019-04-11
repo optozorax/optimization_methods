@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <iomanip>
 #include <string>
 #include <fstream>
@@ -28,14 +28,42 @@ void makeSecondTable(const Optimizator& o, const ArgMinFunction& argmin, const F
 
 	fout << "answer: " << result.answer << ", fCount: " << result.fCount << ", exit type: " << result.exit << ", iterations: " << result.iterations << std::endl;
 
-	fout << "point\tvalue\tdir\tlambda\tdiff_point\tdiff_value\tgrad\thessian" << std::endl;
+	fout << "i\tpoint\tvalue\tdir\tlambda\tdiff_point\tdiff_value\tgrad\thessian" << std::endl;
 	auto lastPoint = result.steps.front().point;
 	auto lastValue = result.steps.front().value;
+	int counter = 0;
 	for (auto& i : result.steps) {
-		fout << i.point << "\t" << i.value << "\t" << i.dir << "\t" << i.lambda << "\t";
-		fout << (lastPoint - i.point) << "\t";
-		fout << std::fabs(lastValue - i.value) << "\t";
-		fout << i.grad << "\t" << i.hessian << std::endl;
+		Vector diff_point = Vector(i.point - lastPoint);
+		double diff_value = std::fabs(i.value - lastValue);
+		fout << counter << "\t" << i.point << "\t" << i.value << "\t" << i.dir << "\t" << i.lambda << "\t" << diff_point << "\t" << diff_value << "\t" << i.grad << "\t\\scalebox{.5}{" << i.hessian << "}" << std::endl;
+		lastPoint = i.point;
+		lastValue = i.value;
+		counter++;
+		if (counter % 25 == 0 && counter != 0) {
+			fout.close();
+			fout.open(file + "_" + std::to_string(counter / 25) + ".txt");
+			fout << "next table part" << std::endl << "empty line for compability" << std::endl;
+			fout << "i\tpoint\tvalue\tdir\tlambda\tdiff_point\tdiff_value\tgrad\thessian" << std::endl;
+		}
+	}
+
+	fout.close();
+}
+
+void makeTableForF2(const Vector& x0, const ArgMinFunction& argmin, const std::string& file) {
+	std::ofstream fout(file + ".txt");
+	fout << "Table for function t*(y-x^2)^2 + (1-x)^2: " << std::endl;
+	fout << "t\tfCount" << std::endl;
+
+	for (int i = 0; i < 1000; i++) {
+		double t = i / 10.0;
+		auto f = [t](const Vector& v) -> double {
+			const double& x = v(0);
+			const double& y = v(1);
+			return t * (y - x * x)*(y - x * x) + (1 - x)*(1 - x);
+		};
+		auto result = optimizeConjugateGradient(f, argmin, x0, 1e-3);
+		fout << t << "\t" << result.fCount << std::endl;
 	}
 
 	fout.close();
@@ -54,12 +82,15 @@ int main() {
 	auto argminParabola = bindArgmin(optimizeParabola);
 
 	std::vector<std::pair<Function, std::string>> funcs = {
-		{f1, "f1"}, {f2, "f2"}, {f3, "f3"}, {f4, "f4"}, {f5, "f5"}
+		{f1, "f1"}, 
+		{f2, "f2"}, 
+		{f3, "f3"}, 
 	};
 
 	for (auto& i : funcs) {
+		std::cout << "Draw " << i.second << std::endl;
 		// Строим рисунки зависимости числа вычислений функции от положения
-		visualize(optimizeBroyden, optimizeConjugateGradient, argmin, i.first, x0, 0.001, 500, "image_" + i.second);
+		visualize(optimizeBroyden, optimizeConjugateGradient, argmin, i.first, x0, 0.001, 500, L"Метод Бройдена", L"Метод Сопряженных Градиентов", "image_" + i.second);
 
 		// Первая и вторая таблица для метода Бройдена
 		makeFirstTable(optimizeBroyden, argmin, i.first, x0, "table1_" + i.second + "_broyden");
@@ -70,6 +101,11 @@ int main() {
 		makeSecondTable(optimizeConjugateGradient, argmin, i.first, x0, eps, "table2_" + i.second +"_gradient");
 	}
 
-	makeFirstTable(optimizeBroyden, argminParabola, funcs.back().first, x0, "table1_broyden_parabola");
-	makeFirstTable(optimizeConjugateGradient, argminParabola, funcs.back().first, x0, "table1_gradient_parabola");
+	std::cout << "Draw parabola" << std::endl;
+	auto f = funcs.back().first;
+	visualize(optimizeBroyden, optimizeConjugateGradient, argminParabola, f, x0, 0.001, 500, L"Метод Бройдена", L"Метод Сопряженных Градиентов", "image_parabola");
+	makeFirstTable(optimizeBroyden, argminParabola, f, x0, "table1_parabola_broyden");
+	makeFirstTable(optimizeConjugateGradient, argminParabola, f, x0, "table1_parabola_gradient");
+
+	makeTableForF2(x0, argmin, "table_f2");
 }

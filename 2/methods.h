@@ -79,6 +79,7 @@ MethodResult optimizeBroyden(const Function& f, const ArgMinFunction& argmin, co
 MethodResult optimizeConjugateGradient(const Function& f, const ArgMinFunction& argmin, const Vector& x0, const double& eps);
 
 // Функции для вывода векторов и матриц.
+std::string write_for_latex_double(double v, int precision);
 std::ostream& operator<<(std::ostream& out, const Vector& v);
 std::ostream& operator<<(std::ostream& out, const Matrix& m);
 

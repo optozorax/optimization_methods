@@ -1,4 +1,4 @@
-#include "pch.h"
+//#include "pch.h"
 #include "methods.h"
 
 //-----------------------------------------------------------------------------
@@ -118,12 +118,11 @@ double optimizeParabola(const OneDimensionFunction& f, double a, double b, doubl
 	double f1 = f(x1);
 	double f2 = f(x2);
 	double f3 = f(x3);
-
-	std::cout << "x: " << x1 << " " << x2 << " " << x3 << std::endl;
-	std::cout << "f: " << f1 << " " << f2 << " " << f3 << std::endl;
+	double fa = f1, fb = f3;
 
 	bool finding = true;
 	int iter = 0;
+	double fx;
 	while (finding) {
 
 		// parabola y = a0 + a1(x - x1) + a2(x - x1)(x - x2);
@@ -141,11 +140,7 @@ double optimizeParabola(const OneDimensionFunction& f, double a, double b, doubl
 			}
 		}
 
-		double fx = f(x);
-
-		//std::cout.precision(15);
-		//std::cout << "_________________________________________________________" << std::endl;
-		//std::cout << iter << " " << x << " " << fx << std::endl;
+		fx = f(x);
 
 		// find new section:
 		xPrev = x;
@@ -176,11 +171,21 @@ double optimizeParabola(const OneDimensionFunction& f, double a, double b, doubl
 				x2 = x; f2 = fx;
 			}
 		}
-
-		//std::cout <<"x: " << x1 << " " << x2 << " " << x3 << std::endl;
-		//std::cout << "f: " << f1 << " " << f2 << " " << f3 << std::endl;
-
 	}
+
+	if (fa < fx) {
+		if (fb < fa)
+			return b;
+		else
+			return a;
+	}
+	if (fb < fx) {
+		if (fa < fb)
+			return a;
+		else
+			return b;
+	}
+
 	return x;
 }
 
@@ -282,10 +287,10 @@ MethodResult optimizeBroyden(const Function& f1, const ArgMinFunction& argmin, c
 
 	Matrix n;
 	n = Matrix::Identity(x.size(), x.size()); debug(n);
-
-	result.steps.push_back({ x, f1(x), {}, 0, {}, {} });
-
 	Vector gradf = grad(f, x);  debug(gradf);
+
+	Vector zero(2); zero << 0, 0;
+	result.steps.push_back({ x, f1(x), {zero}, 0, {gradf}, {n} });
 	while (true) {
 		debug(gradf.norm());
 		if (gradf.norm() < eps) {
@@ -351,6 +356,9 @@ MethodResult optimizeConjugateGradient(const Function& f1, const ArgMinFunction&
 	Vector s0(dim), s1(dim);
 	Vector grad0(dim), grad1(dim);
 
+	Vector zero = Vector::Zero(x0.size());
+	Matrix zeroM = Matrix::Zero(x0.size(), x0.size());
+	result.steps.push_back({ x, f1(x), zero, 0, grad(f, x), zeroM });
 	bool optimization = true;
 	while (optimization) {
 		// find first direction
@@ -359,7 +367,7 @@ MethodResult optimizeConjugateGradient(const Function& f1, const ArgMinFunction&
 
 		gradNorm = s0.norm();
 		if (gradNorm < eps) {
-			result.steps.push_back({ x1, f1(x1), s0, 0, grad0, {} });
+			result.steps.push_back({ x1, f1(x1), s0, 0, grad0, zeroM });
 			optimization = false;
 			result.exit = ExitType::EXIT_STEP;
 			break;
@@ -377,7 +385,7 @@ MethodResult optimizeConjugateGradient(const Function& f1, const ArgMinFunction&
 			double lambda = argmin(optimizeFunc, argmineps); //debug(lambda);
 			x1 = x + lambda * s0; //debug(x1);
 
-			result.steps.push_back({ x1, f1(x1), s0, lambda, grad0, {} });
+			result.steps.push_back({ x1, f1(x1), s0, lambda, grad0, zeroM });
 			result.iterations++;
 
 			// calculate direction to x(k+1)
@@ -487,28 +495,56 @@ MethodResult optimizeHookeJeeves(const Function& f1, const ArgMinFunction& argmi
 	result.answer = x1;
 	return result;
 }
+ 
+std::string write_for_latex_double(double v, int precision) {
+	int power = log(std::fabs(v)) / log(10.0);
+	double value = v / pow(10.0, power);
+
+	if (v == 0) {
+		power = 0;
+		value = 0;
+	}
+
+	std::stringstream sout;
+	sout.precision(2);
+	if (power == -1 || power == 0 || power == 1) {
+		sout << v;
+	} else {
+		sout << value << "\\cdot 10^{" << power << "}";
+	}
+
+	return sout.str();
+}
 
 //-----------------------------------------------------------------------------
 std::ostream& operator<<(std::ostream& out, const Vector& v) {
+	auto old = out.precision(); out.precision(2);
+	out << "$(";
 	for (int i = 0; i < v.size(); ++i) {
-		out << v(i);
+		out << write_for_latex_double(v(i), 2);
 		if (i != v.size()-1) 
-			out << " ";
+			out << ", ";
 	}
+	out << ")^T$";
+	out.precision(old);
 	return out;
 }
 
 //-----------------------------------------------------------------------------
 std::ostream& operator<<(std::ostream& out, const Matrix& m) {
+	auto old = out.precision(); out.precision(2);
+	out << "$\\left(\\,\\begin{matrix}";
 	for (int i = 0; i < m.rows(); ++i) {
 		for (int j = 0; j < m.cols(); ++j) {
-			out << m(i, j);
+			out << write_for_latex_double(m(i, j), 2);
 			if (j != m.cols()-1) 
-				out << " ";
+				out << "&";
 		}
 		if (i != m.rows()-1) 
-			out << "; ";
+			out << "\\\\";
 	}
+	out << "\\end{matrix}\\,\\right)$";
+	out.precision(old);
 	return out;
 }
 

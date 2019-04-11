@@ -13,5 +13,7 @@ void visualize(
 	const Vector& x0, 
 	const double& eps, 
 	const int& size,
+	const std::wstring& o1name,
+	const std::wstring& o2name,
 	const std::string& file
 );
