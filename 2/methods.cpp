@@ -432,18 +432,23 @@ MethodResult optimizeHookeJeeves(const Function& f1, const ArgMinFunction& argmi
 	double argmineps = 1e-7;
 
 	// prepare calculation:
-	double dx = 1e-3;		// start dx value
 	Vector x = x0;
 	Vector x1 = x0;
 	Vector s = x0;			// direction to 1D minimization
 
-	double f0 = f(x0);		// start f value
+	double f0 = f(x0), flast = f0;		// start f value
 	double f1val = 0;			// value in next finding point
+	debug(x0);
+
+	Vector zero = Vector::Zero(x0.size());
+	Matrix zeroM = Matrix::Zero(x0.size(), x0.size());
+	result.steps.push_back({ x, f1(x), zero, 0, grad(f1, x), zeroM });
 
 	// optimization:
 	while (true) {
 		// examining search
 		bool succesfulStep = false;
+		double dx = 1e-2;		// start dx value
 
 		do {
 			for (int i = 0; i < x1.size(); i++) {
@@ -464,28 +469,40 @@ MethodResult optimizeHookeJeeves(const Function& f1, const ArgMinFunction& argmi
 				else f0 = fp;
 			}
 
-			if (x1 == x) dx /= 2;
+			if ((x1 - x).norm() < 1e-13) dx /= 2;
 			else succesfulStep = true;
 
 		} while (!succesfulStep);
 
-		// minimization in finded direction 
+		// minimization in finded direction
+		debug(x1);
+		debug(x);
 		s = x1 - x;		// direction
+		debug(s);
 
 		auto optimizeFunc = [f, s, x](double lambda) -> double {
 			return f(x + lambda * s);
 		};
 
 		double lambda = argmin(optimizeFunc, argmineps);
-		x1 = x0 + lambda * s; //debug(x1);
+		x1 = x + lambda * s; //debug(x1);
 
 		f1val = f(x1);
 
+		result.steps.push_back({ x1, f1(x1), s, lambda, grad(f1, x1), zeroM });
+		result.iterations++;
+
 		// check value exit:
-		if (abs(f1val - f0) < eps) break;
+		//if ( < eps) break;
+			debug(x1);
+		double sub = (x - x1).norm();
+		double fsub = fabs(f1val - flast);
+		double gg = fsub / sub;
+		if (gg < eps || result.iterations > 100) break;
 		else {	// prepare next iteration:
-			std::swap(f1val, f0);
-			std::swap(x1, x);
+			f0 = f1val;
+			flast = f0;
+			x = x1;
 		}
 
 		// check step exit:
