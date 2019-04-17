@@ -78,8 +78,6 @@ MethodResult optimizeBroyden(const Function& f, const ArgMinFunction& argmin, co
 /** Оптимизация с помощью метода сопряженных градиентов Флетчера-Ривса. */
 MethodResult optimizeConjugateGradient(const Function& f, const ArgMinFunction& argmin, const Vector& x0, const double& eps);
 
-MethodResult optimizeHookeJeeves(const Function& f1, const ArgMinFunction& argmin, const Vector& x0, const double& eps);
-
 // Функции для вывода векторов и матриц.
 std::string write_for_latex_double(double v, int precision);
 std::ostream& operator<<(std::ostream& out, const Vector& v);
