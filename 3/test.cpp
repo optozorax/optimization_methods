@@ -1,5 +1,6 @@
 ﻿#include "methods3.h"
-#include "../2/visualize/visualize.h"
+#include "visualize.h"
+#include "../2/visualize/find_borders.h"
 
 //-----------------------------------------------------------------------------
 double restriction1(const Vector& v) {
@@ -29,42 +30,58 @@ double f(const Vector& v) {
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+void makeFirstTable(
+	const ArgMinFunction& argmin, 
+	const Function& f, 
+	const Function& restriction, 
+	const Vector& x0, 
+	const std::string& file
+) {
+	std::ofstream fout(file + ".txt");
+	fout << std::setprecision(10);
+
+	fout 
+		<< "x0 = " << x0 << ", "
+		<< "startPenaltyCoef = " << 1 << ", "
+		<< "penaltyExporent = " << 2 << std::endl;
+
+
+	fout << "10^i\titer\tfCount\tanswer\trestriction_value\tgrad.norm()" << std::endl;
+	for (int i = 3; i < 7; ++i) {
+		double eps = pow(10.0, -double(i));
+		auto result = optimizeWithRestriction(optimizeHookeJeeves, f, restriction, argmin, x0, eps);
+		fout 
+			<< -i << "\t" 
+			<< result.iterations << "\t" 
+			<< result.fCount << "\t" 
+			<< result.answer << "\t" 
+			<< restriction(result.answer) << "\t"
+			<< grad(f, result.answer).norm() << std::endl;
+	}
+	fout.close();
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
 int main() {
 	auto restriction = restriction2;
 	Vector x0(2);
 	x0 << 0, 0;
 
 	auto argmin = bindArgmin(optimizeGoldenRatio);
+	makeFirstTable(argmin, f, restriction1, x0, "table_eps_1");
+	makeFirstTable(argmin, f, restriction2, x0, "table_eps_2");
 
-	auto res = optimizeWithRestriction(optimizeHookeJeeves, f, restriction, argmin, x0, 0.001, 2);
+	FindBorders brd(500, 0, false);
+	brd.process({-3, -3});
+	brd.process({3, 3});
+	brd.finish();
+	visualizeStartPoint(brd, argmin, f, restriction1, 0.001, "1");
+	//visualizeStartPoint(brd, argmin, f, restriction2, 0.001, "2");
 
-	std::cout << "Exit type: " << res.exit << std::endl;
-	std::cout << "k: " << res.k << std::endl;
-
-	std::cout << "Answer: " << res.result.answer << std::endl;
-	std::cout << "Grad in answer: " << grad(sumWeight(f, restriction, 1, res.k), res.result.answer).norm() << std::endl;
-	std::cout << "Exit type in method: " << res.result.exit << std::endl;
-	std::cout << "Iterations: " << res.result.iterations << ", fCount: " << res.result.fCount << std::endl;
-
-	visualize(optimizeHookeJeeves, optimizeBroyden, argmin, sumWeight(f, restriction, 1, res.k), x0, 0.001, 900, L"Метод Хука и Дживса", L"Метод Бройдена", "3_lab");
-
-	system("pause");
+	//system("pause");
 }
-
-/*
-
-* выбора штрафных функций,
-	Перебрать несколько степеней n
-		(1/2(g+|g|))^(2n)
-		функция	количество итераций	количество вычислений функции
-* начальной величины коэффициента штрафа,
-	коэффициент увеличения штрафа = 2
-	(1, 1000) начальный штраф	количество итераций	количество вычислений функции
-* стратегии изменения коэффициента штрафа
-	(1, 1000) коэффициент увеличения штрафа	количество итераций	количество вычислений функции
-* начальной точки, - нарисовать
-* задаваемой точности - таблица 1
-	начальная точка, начальный штраф, коэффициент увеличения штрафа, 
-	точность	число итераций	число вычислений функции	ответ
-
-*/

@@ -27,6 +27,7 @@ MethodResult optimizeHookeJeeves(const Function& f1, const ArgMinFunction& argmi
 		bool succesfulStep = false;
 		double dx = 1e-2;		// start dx value
 
+		int localIterations = 0;
 		do {
 			for (int i = 0; i < x1.size(); i++) {
 				double fp = 0;			// value in x + dx point
@@ -48,6 +49,9 @@ MethodResult optimizeHookeJeeves(const Function& f1, const ArgMinFunction& argmi
 
 			if ((x1 - x).norm() < 1e-13) dx /= 2;
 			else succesfulStep = true;
+
+			localIterations++;
+			if (localIterations > 100) break;
 
 		} while (!succesfulStep);
 
@@ -98,14 +102,25 @@ Function sumWeight(Function f1, Function f2, double w1, double w2) {
 }
 
 //-----------------------------------------------------------------------------
-BarrierResult optimizeWithRestriction(const Optimizator& optimizer, const Function& f, const Function& restriction, const ArgMinFunction& argmin, const Vector& x0, const double& eps, const double& mulCoef) {
-	double k = 0.5;
+BarrierResult optimizeWithRestriction(
+	const Optimizator& optimizer, 
+	const Function& f, 
+	const Function& restriction, 
+	const ArgMinFunction& argmin, 
+	const Vector& x0, 
+	const double& eps,
+	const double& penaltyExponent,
+	const double& startPenaltyCoef
+) {
+	double k = startPenaltyCoef;
 	MethodResult res;
+	int fCount = 0;
 	for (int i = 0; i < 60; ++i) {
-		k *= mulCoef;
+		k *= penaltyExponent;
 		res = optimizer(sumWeight(f, restriction, 1, k), argmin, x0, eps);
+		fCount += res.fCount;
 		if (restriction(res.answer) < eps)
-			return {EXIT_RESIDUAL, k, res};
+			return {EXIT_RESIDUAL, k, res.answer, i, fCount};
 	}
-	return {EXIT_ITERATIONS, k, res};
+	return {EXIT_ITERATIONS, k, res.answer, 60, fCount};
 }

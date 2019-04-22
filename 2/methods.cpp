@@ -1,4 +1,3 @@
-//#include "pch.h"
 #include "methods.h"
 
 //-----------------------------------------------------------------------------
@@ -32,6 +31,7 @@ double optimizeGoldenRatio(const OneDimensionFunction& f, double a, double b, do
 	double f1 = f(x1);
 	double f2 = f(x2);
 
+	int iters = 0;
 	while (std::fabs(a - b) > eps) {
 		if (f1 > f2) {
 			a = x1;
@@ -47,6 +47,9 @@ double optimizeGoldenRatio(const OneDimensionFunction& f, double a, double b, do
 			x1 = a + GOLD_A * (b - a);
 			f1 = f(x1);
 		}
+
+		iters++;
+		if (iters > 100) break;
 	}
 
 	return (a + b) / 2.0;
