@@ -102,6 +102,14 @@ Function sumWeight(Function f1, Function f2, double w1, double w2) {
 }
 
 //-----------------------------------------------------------------------------
+Function makeRestriction(int n, Function g) {
+	return [=] (const Vector& x) -> double {
+		double gv = g(x);
+		return pow((gv + std::fabs(gv))/2.0, 2*n);
+	};	
+}
+
+//-----------------------------------------------------------------------------
 BarrierResult optimizeWithRestriction(
 	const Optimizator& optimizer, 
 	const Function& f, 

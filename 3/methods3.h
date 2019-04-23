@@ -15,6 +15,7 @@ struct BarrierResult
 MethodResult optimizeHookeJeeves(const Function& f1, const ArgMinFunction& argmin, const Vector& x0, const double& eps);
 
 Function sumWeight(Function f1, Function f2, double w1, double w2);
+Function makeRestriction(int n, Function g);
 
 BarrierResult optimizeWithRestriction(
 	const Optimizator& optimizer, 
