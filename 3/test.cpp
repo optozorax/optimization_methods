@@ -6,10 +6,10 @@
 double restriction1(const Vector& v) {
 	const double& x = v(0);
 	const double& y = v(1);
-	if (y - x >= -0.2)
+	if (y - x >= 0.2)
 		return 0;
 	else
-		return y-x+0.2;
+		return y-x-0.2;
 }
 
 //-----------------------------------------------------------------------------
@@ -17,6 +17,21 @@ double restriction2(const Vector& v) {
 	const double& x = v(0);
 	const double& y = v(1);
 	return std::fabs(x+y);
+}
+
+//-----------------------------------------------------------------------------
+double g(const Vector& v) {
+	const double& x = v(0);
+	const double& y = v(1);
+	return x-y+0.2;
+}
+
+//-----------------------------------------------------------------------------
+double restriction3(const Vector& v) {
+	if (g(v) < 0)
+		return -log(-g(v));
+	else
+		return std::numeric_limits<double>::infinity();
 }
 
 //-----------------------------------------------------------------------------
@@ -164,18 +179,22 @@ void makeFourthTable(
 
 int main() {
 	Vector x0(2);
-	x0 << 0, 0;
+	x0 << -1, 0;
 	auto argmin = bindArgmin(optimizeGoldenRatio);
 
 	makeFirstTable(argmin, f, restriction1, x0, "table_eps_1");
 	makeSecondTable(argmin, f, restriction1, x0, "table_exp_1", 0.001);
 	makeThirdTable(argmin, f, restriction1, x0, "table_start_1", 0.001);
-	makeFourthTable(argmin, f, restriction1, x0, "table_fine_1", 0.001);
 	
 	makeFirstTable(argmin, f, restriction2, x0, "table_eps_2");
 	makeSecondTable(argmin, f, restriction2, x0, "table_exp_2", 0.001);
 	makeThirdTable(argmin, f, restriction2, x0, "table_start_2", 0.001);
-	makeFourthTable(argmin, f, restriction2, x0, "table_fine_2", 0.001);
+
+	makeFirstTable(argmin, f, restriction3, x0, "table_eps_3");
+	makeSecondTable(argmin, f, restriction3, x0, "table_exp_3", 0.001);
+	makeThirdTable(argmin, f, restriction3, x0, "table_start_3", 0.001);
+
+	makeFourthTable(argmin, f, g, x0, "table_fine_g", 0.001);
 
 	/*FindBorders brd(500, 0, false);
 	brd.process({-3, -3});
