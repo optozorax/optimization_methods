@@ -127,8 +127,8 @@ BarrierResult optimizeWithRestriction(
 		k *= penaltyExponent;
 		res = optimizer(sumWeight(f, restriction, 1, k), argmin, x0, eps);
 		fCount += res.fCount;
-		if (restriction(res.answer) < eps)
-			return {EXIT_RESIDUAL, k, res.answer, i, fCount};
+		if (k * restriction(res.answer) < eps)
+			return {EXIT_RESIDUAL, k, res.answer, i+1, fCount};
 	}
 	return {EXIT_ITERATIONS, k, res.answer, 60, fCount};
 }
