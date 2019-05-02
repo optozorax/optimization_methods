@@ -1,25 +1,27 @@
 /**
 	Программа для нахождения максимально равномерно расположенных точек внутри квадрата. Будет использоваться для рейтрейсинга с задаваемым числом семплов. Число семплов от 1 до 512.
 
-	Для этого использовался метод Бройдена с штрафными функциями.
+	Для этого использовалась дифференциальная эволюция.
 
-	Результат: программа вообще не сходится. Если инициализировать точками на окружности, то программа сдвигает лишь несколько точек.
+	Результат: результат намного лучше, чем для метода Бройдена, но равномерность настолько же плохая, как у обычного рандома. При ста точках можно наблюдать пустые места.
 
  */
 
+#include <iostream>
+#include <fstream>
 #include <algorithm>
 #include <random>
-#include "2/methods.h"
-#include "3/methods3.h"
+#include <differential_evolution.hpp>
+
+using namespace std;
+using namespace amichel::de;
 
 //-----------------------------------------------------------------------------
 double random(void) {
-  static std::mt19937 generator(time(0));
-  static std::uniform_real_distribution<double> distribution(0, 1);
+  static mt19937 generator(time(0));
+  static uniform_real_distribution<double> distribution(0, 1);
   return distribution(generator);
 }
-
-using namespace std;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -36,10 +38,10 @@ double getDistance(const Point& a, const Point& b) {
 }
 
 //-----------------------------------------------------------------------------
-Points makePoints(const Vector& x) {
+Points makePoints(amichel::de::DVectorPtr args) {
 	Points points;
-	for (int i = 0; i < x.size(); i+=2) {
-		points.push_back({x(i), x(i+1)});
+	for (int i = 0; i < args->size(); i+=2) {
+		points.push_back({(*args)[i], (*args)[i+1]});
 	}
 	return points;
 }
@@ -99,65 +101,75 @@ double f(const Points& points) {
 	return 1-distance;//+massCoef;
 }
 
-//-----------------------------------------------------------------------------
-double fVector(const Vector& x) {
-	return f(makePoints(x));
-}
-
-//-----------------------------------------------------------------------------
-double restriction(const Vector& x) {
-	Points points;
-	double distance = numeric_limits<double>::max();
-	for (int i = 0; i < x.size(); i+=2) {
-		points.push_back({x(i), x(i+1)});
+struct fde {
+public:
+	virtual double operator()(amichel::de::DVectorPtr args) {
+		return f(makePoints(args));
 	}
+};
 
-	// Чтобы не выходило за пределы пикселя
-	double sum = 0;
-	for (auto& i : points) {
-		if (i.first > 1) sum += i.first - 1;
-		if (i.first < 0) sum += -i.first;
-		if (i.second > 1) sum += i.second - 1;
-		if (i.second < 0) sum += -i.second;
+class my_listener : public listener {
+public:
+	virtual void start() {}
+	virtual void end() {}
+	virtual void error() {}
+	virtual void startGeneration(size_t genCount) {}
+	virtual void endGeneration(size_t genCount, individual_ptr bestIndGen, individual_ptr bestInd) {
+		if (genCount % 20 == 0)
+			cout << "\r" << genCount << " " << bestInd->cost() << "             ";
 	}
-
-	return sum;
-}
+	virtual void startSelection(size_t genCount) {}
+	virtual void endSelection(size_t genCount) {}
+	virtual void startProcessors(size_t genCount) {}
+	virtual void endProcessors(size_t genCount) {}
+};
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 
 int main() {
+	const int population_size = 400;
+
 	ofstream fout("samples.txt");
-	auto argmin = bindArgmin(optimizeGoldenRatio);
-	for (int i = 3; i <= 10; ++i) {
-		Vector x0(i*2); 
-		for (int j = 0; j < i; ++j) {
-			x0(j*2) = 0.5 + 0.25 * sin(j * 2.0*3.1415 / i) + 0.05 * random();
-			x0(j*2+1) = 0.5 + 0.25 * cos(j * 2.0*3.1415 / i) + 0.05 * random();
-			// x0(j*2) = random();
-			// x0(j*2+1) = random();
+	for (int i = 1; i <= 10; ++i) {
+		try {
+			constraints_ptr constraints(make_shared<constraints>(2*i, 0, 1));
+
+			auto listener(make_shared<my_listener>());
+			auto processor_listener(make_shared<null_processor_listener>());
+
+			auto _processors(
+			make_shared<processors<fde> >(3, fde(), processor_listener));
+
+			auto terminationStrategy(make_shared<max_gen_termination_strategy>(2000));
+
+			selection_strategy_ptr selectionStrategy(
+			make_shared<best_parent_child_selection_strategy>());
+
+			mutation_strategy_arguments mutation_arguments(1.5, 0.9);
+			mutation_strategy_ptr mutationStrategy(make_shared<mutation_strategy_1>(2*i, mutation_arguments));
+
+			differential_evolution<fde> de(2*i, population_size, _processors, constraints, true, terminationStrategy, selectionStrategy, mutationStrategy, listener);
+
+			de.run();
+
+			individual_ptr best(de.best());
+
+			fout << i << endl;
+			auto points = makePoints(de.best()->vars());
+			for (auto& i : points)
+				fout << "(" << i.first << ", " << i.second << ")" << endl;
+			auto neighbors = makeNeighbors(points);
+			for (auto& i : neighbors)
+				fout << "(" << i.first << ", " << i.second << ")" << endl;
+			fout << endl << endl;
+		} catch (const amichel::de::exception& e) {
+			cout << "an error occurred: " << e.what() << endl;
 		}
-
-		auto result = optimizeWithRestriction(optimizeBroyden, fVector, restriction, argmin, x0, 1e-3, 2);
-
-		fout << i << endl;
-		auto points = makePoints(result.answer);
-		for (auto& i : points)
-			fout << "(" << i.first << ", " << i.second << ")" << endl;
-		auto neighbors = makeNeighbors(points);
-		for (auto& i : neighbors)
-			fout << "(" << i.first << ", " << i.second << ")" << endl;
-		fout << endl << endl;
-
-		cout 
-			<< i 
-			<< ", iters: " << result.iterations 
-			<< ", fCount: " << result.fCount
-			<< ", grad norm: " << grad(fVector, result.answer).norm() << endl;
+		
+		cout << i << endl;
 	}
 	fout.close();
-
 	system("pause");
 }
